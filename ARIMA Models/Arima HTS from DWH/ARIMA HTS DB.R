@@ -11,41 +11,19 @@ conn <- dbConnect(
 )
 
 dbExecute(conn,
-          "CREATE TABLE IF NOT EXISTS HomaBayHTS (
-        ID integer primary key auto_increment,
-        AgeAtTest integer,
-        MaritalStatus varchar(255),
-        Gender varchar(255),
-        EverTestedForHIV varchar(255),
-        MonthsSinceLastTest integer,
-        ClientTestedAs varchar(255),
-        TestingStrategy varchar(255),
-        ClientSelfTested varchar(255),
-        TBScreening varchar(255),
-        Sitecode varchar(255),
-        month_of_test varchar(255),
-        dayofweek varchar(255),
-        KeyPopulationType varchar(255),
-        Prediction double,
-        TestResult varchar(255),
-        TimeofTest varchar(255)
+          "CREATE TABLE IF NOT EXISTS ArimaHTS (
+            county varchar(255),
+            Date datetime,
+            Point_Forecast double,
+            Lo_80 double,
+            Hi_80 double,
+            Lo_95 double,
+            Hi_95 double,
+            num_pos integer,
+            num_tests integer
     )"
 )
 
-dbExecute(conn,
-          "CREATE TABLE IF NOT EXISTS HomaBayAccess (
-        ID integer primary key auto_increment,
-        usernames varchar(255),
-        passwords varchar(255)
-    )"
-)
-
-users <- dbGetQuery(conn, "SELECT * FROM HomaBayAccess")
-if(nrow(users) == 0) {
-  dbExecute(conn, "
-        INSERT INTO HomaBayAccess(usernames, passwords)
-        VALUES ('Laureen', '123'), ('Eric', '456'), ('Evans', '789')
-    ")
-}
-
+dbWriteTable(conn, "ArimaHTS", df, append = TRUE)
 dbDisconnect(conn)
+

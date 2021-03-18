@@ -8,7 +8,7 @@ library(DT)
 library(MLmetrics)
 library(tidyr)
 
-forecasts <- readRDS('./county_hts_forecasts_ndwh.rds')
+forecasts <- readRDS('D:/OneDrive/R Work/Arima Models/county_hts_forecasts_ndwh.rds')
 countys <- names(forecasts)
 
 #Initialize List and DataFrame
@@ -24,6 +24,15 @@ dat <- forecasts[[which(names(forecasts) == i)]]
 low_mape <-min(dat$stlf_arima_mape, dat$stlf_naive_mape, dat$stlf_ets_mape)
 mod_low_mape <- which(sapply(dat[c(4,6,8)], function(x) x == low_mape))
 dat_forecasts <- dat[[which(names(dat) == names(mod_low_mape)) - 1]]
+
+#Rename the columns to replace . with _
+dat_forecasts <- data.frame(dat_forecasts) %>%
+  rename('Hi_95' = Hi.95,
+         'Lo_95' = Lo.95,
+         'Hi_80' = Hi.80,
+         'Lo_80' = Lo.80,
+         'Point_Forecast' = Point.Forecast)
+
 print(low_mape)
 dates <- data.frame(Date = seq(as.Date("2018/01/01"), as.Date("2021/06/01"), by = "month"))
 
@@ -41,18 +50,10 @@ combined <- merge(dates, forecast, by = "Date", all.x = TRUE) %>%
   merge(., num_tests, by = "Date", all.x = TRUE)
 
 forecasts_kiherehere[[i]]<-combined
-df<-rbind(df,forecasts_kiherehere[[i]] %>% mutate(county=i))
+df<- rbind(df,forecasts_kiherehere[[i]]%>% mutate(county=i) )
 }
-
 #Write to csv
 write_csv(df,"Arima_dwh_output.csv")
-
-
-
-
-
-
-
 
 dat_long <- pivot_longer(df, cols = c("Point.Forecast", "num_pos"))
 

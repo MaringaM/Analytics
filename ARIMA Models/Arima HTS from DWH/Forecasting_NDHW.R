@@ -5,7 +5,7 @@ library(dplyr) # Essentially enables writing SQL in R
 library(stringr) # For string processing
 library(lubridate)
 
-hts <- read.csv('HTS FEB 2021.csv', stringsAsFactors = FALSE)
+hts <- read.csv('D:/OneDrive/R Work/Arima Models/HTS_FEB_2021.csv', stringsAsFactors = FALSE)
 hts$County <- tolower(hts$County)
 hts <- hts %>%
   filter(!grepl("centre|hospital|dispensary", hts$County))
@@ -75,7 +75,6 @@ for(i in counties){
   stlf_arima_forecast <- stlf(training, method = "arima")
   stlf_arima_mape <- Metrics::mape(validation, stlf_arima_forecast$mean[1:period_validation])
 
-
   # VAR Model
   training <- ts(dat[1:period_train, 4:5], start = c(2018, 1), frequency = 12)
   validation <- ts(dat[(period_train+1):nrow(dat), 4], start = c(2020, 7), frequency = 12)
@@ -84,9 +83,9 @@ for(i in counties){
   var_mape <- Metrics::mape(validation, var_forecast[1:period_validation, 1])
   # Rename outputs so that they match models above (will be easier later if all dataframes share variable names)
   var_forecast <- data.frame(var_forecast) %>%
-    rename('Hi.95' = upper,
-           'Lo.95' = lower,
-           'Point.Forecast' = fcst)
+    rename('Hi_95' = upper,
+           'Lo_95' = lower,
+           'Point_Forecast' = fcst)
 
   # Add forecasts, actuals, and mape to out list
   forecasts_out[[i]] <- list('arima_forecast' = data.frame(arima_forecast), #convert to dataframe (from forecast object)
@@ -104,4 +103,4 @@ for(i in counties){
 }
 
 # Save outputs
-saveRDS(forecasts_out, './county_hts_forecasts_ndwh.rds')
+saveRDS(forecasts_out, 'D:/OneDrive/R Work/Arima Models/county_hts_forecasts_ndwh.rds')
