@@ -8,7 +8,8 @@ library(DT)
 library(MLmetrics)
 library(tidyr)
 
-forecasts <- readRDS('D:/OneDrive/R Work/Arima Models/county_hts_forecasts_ndwh.rds')
+
+forecasts <- readRDS('C:/Users/Admin/OneDrive/R Work/Arima Models/county_hts_forecasts_ndwh.rds')
 countys <- names(forecasts)
 
 #Initialize List and DataFrame
@@ -53,14 +54,14 @@ forecasts_kiherehere[[i]]<-combined
 df<- rbind(df,forecasts_kiherehere[[i]]%>% mutate(county=i) )
 }
 #Write to csv
-write_csv(df,"Arima_dwh_output.csv")
+#write_csv(df,"Arima_dwh_output.csv")
 
-dat_long <- pivot_longer(df, cols = c("Point.Forecast", "num_pos"))
+dat_long <- pivot_longer(df, cols = c("Point_Forecast", "num_pos"))
 
 dat_plot <- dat_long %>%filter(county=='bungoma') %>% ggplot(aes(x = Date, y = value, color = name)) +
   geom_line() +
   scale_x_date(date_labels = "%Y %b") +
-  geom_ribbon(aes(ymin = Lo.95, ymax = Hi.95),
+  geom_ribbon(aes(ymin = Lo_95, ymax = Hi_95),
               fill = "grey70",
               alpha = 0.5,
               color = NA) +
