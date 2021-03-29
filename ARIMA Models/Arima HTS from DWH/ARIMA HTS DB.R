@@ -24,6 +24,8 @@ dbExecute(conn,
     )"
 )
 
+dhf <-readRDS('C:/Users/Admin/OneDrive/Analytics/ARIMA Models/Arima HTS from DWH/arimahtsdwh.rds')
+
 dbWriteTable(conn, "ArimaHTS", df, append = TRUE)
 dbDisconnect(conn)
 
