@@ -1,0 +1,18 @@
+{
+  "name": "arimahtschart",
+  "version": "1.0.0",
+  "description": "Arima HTS Highcharts",
+  "main": "portalconnect.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
