@@ -35,7 +35,7 @@ dat_forecasts <- data.frame(dat_forecasts) %>%
          'Lo_80' = Lo.80,
          'Point_Forecast' = Point.Forecast)
 
-print(low_mape)
+
 dates <- data.frame(Date = seq(as.Date("2018/01/01"), as.Date("2021/06/01"), by = "month"))
 
 forecast <- cbind(Date = seq(as.Date("2020/07/01"), as.Date("2021/06/01"), by = "month"),
@@ -56,7 +56,7 @@ df<- rbind(df,forecasts_kiherehere[[i]]%>% mutate(county=i) )
 }
 #Write to csv
 #write_csv(df,"Arima_dwh_output.csv")
-saveRDS(df, file = "arimahtsdwh.rds")
+#saveRDS(df, file = "arimahtsdwh.rds")
 
 
 
@@ -66,22 +66,22 @@ saveRDS(df, file = "arimahtsdwh.rds")
 
 # 
 # 
-# dat_long <- pivot_longer(df, cols = c("Point_Forecast", "num_pos"))
-# 
-# dat_plot <- dat_long %>%filter(county=='bungoma') %>% ggplot(aes(x = Date, y = value, color = name)) +
-#   geom_line() +
-#   scale_x_date(date_labels = "%Y %b") +
-#   geom_ribbon(aes(ymin = Lo_95, ymax = Hi_95),
-#               fill = "grey70",
-#               alpha = 0.5,
-#               color = NA) +
-#   ggtitle("Twelve-Month Forecast of Positive HIV Tests") +
-#   xlab("Month of Testing") +
-#   ylab("Forecast vs Actuals") +
-#   theme(legend.position = c(.9, .9),
-#         legend.title = element_blank())
-# 
-# ggplotly(dat_plot)
+dat_long <- pivot_longer(df, cols = c("Point_Forecast", "num_pos"))
+
+dat_plot <- dat_long %>%filter(county=='bungoma') %>% ggplot(aes(x = Date, y = value, color = name)) +
+  geom_line() +
+  scale_x_date(date_labels = "%Y %b") +
+  geom_ribbon(aes(ymin = Lo_95, ymax = Hi_95),
+              fill = "grey70",
+              alpha = 0.5,
+              color = NA) +
+  ggtitle("Twelve-Month Forecast of Positive HIV Tests") +
+  xlab("Month of Testing") +
+  ylab("Forecast vs Actuals") +
+  theme(legend.position = c(.9, .9),
+        legend.title = element_blank())
+
+ggplotly(dat_plot)
 
 
 

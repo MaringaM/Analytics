@@ -1,0 +1,169 @@
+---
+title: "HTS ML Analysis"
+author: "Margie"
+date: "4/3/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	fig.height = 10,
+	fig.width = 15,
+	warning = FALSE
+)
+library(kableExtra)
+library(formattable)
+```
+
+```{r loaddata, include=FALSE}
+source("C:/Users/Admin/OneDrive/Analytics/HTS ML Output/HTS ML App County Predictions.R")
+```
+
+### HTS ML VALIDATION
+This document shows validation summaries for the HTS Machine Learning Screening Application developed for `r unique(combi$county)` counties.
+
+### Overall Positivity
+
+```{r overallpositivity, echo=FALSE}
+ggplot(posit,aes(x=reorder(county, -positivity),y=positivity))+
+  geom_bar(stat="identity",fill="steelblue")+
+  geom_text(aes(label=paste0(round((positivity*100),digits=1),'%')), position=position_stack(vjust=1.05)) +
+  ggtitle('Overall Positivity by County')+
+  xlab('County')+ylab('Positivity') +
+theme(
+plot.title = element_text(color="#993333", size=16, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#993333", size=12),
+axis.title.y = element_text(color="#993333", size=12)
+)+
+scale_y_continuous(labels = scales::percent,limit=c(0,0.06))
+
+```
+```{r overallpositivity_tbl, echo=FALSE}
+tbl_combi<-posit %>% arrange(desc(positivity)) %>%
+  mutate(positivity=paste0(round(positivity*100,digits = 1),'%')) 
+
+
+tbl_combi %>% kbl(caption ="<center><strong>Overall Positivity by County</strong></center>") %>%
+  kable_classic_2("hover", full_width = F,html_font = "Cambria")
+```
+
+### Positive Precision by County for Different Risk Factor Combinations
+
+Predictions are not binary "positive" or "negative"; rather, they are numbers between 0 to 1 akin to probabilities. For each threshold from 0 to 1, we calculate precision and recall and plot the points on a curve and thus come up with cut off points.
+
+In HTS Model, there are 4 Risk Outcomes; `r unique(combi$RiskOutcome)`. Different cut-off marks are defined for the risk outcomes by different counties. Across models - the threshold is set based on precision, which is different for every county.
+
+For Siaya County: we expect that of the people we test with a "Highest Risk Outcome" 75.2% will be positive
+
+```{r precision, echo=FALSE}
+combiHighRisk$groupCounty <- factor(combiHighRisk$county,      # Reordering group factor levels
+                         levels = c("Siaya", "Homabay", "Nairobi", "Machakos"))
+ggplot(combiHighRisk,aes(x=reorder(RiskOutcome,-prec_pos),y=prec_pos,fill=RiskOutcome))+
+  geom_bar(stat="identity",position = 'dodge')+
+  facet_grid(. ~groupCounty)  +
+ geom_text(aes(label=paste0(round((prec_pos*100),digits=1),'%')),vjust = 1.09,
+             position = position_dodge(.9), size = 3.5) +
+  ggtitle('Positivity by Risk Outcomes')+
+  xlab('Risk Outcomes')+ylab('Positivity') +
+theme(
+plot.title = element_text(color="#993333", size=16, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#993333", size=12),
+axis.title.y = element_text(color="#993333", size=12),
+axis.text.x = element_text(size=10,angle=90,vjust=0.2)
+)+
+scale_y_continuous(labels = scales::percent,limit=c(0,0.80))
+
+```
+```{r echo=FALSE}
+#Formatted Table 
+tbl_combiRsk<-combiHighRisk %>% select(RiskOutcome,county,Negative,Positive,RowTots,prec_pos,Tot_Pos,rec_pos) %>%
+  mutate(prec_pos=paste0(round(prec_pos*100,digits = 1),'%'),
+         rec_pos=paste0(round(rec_pos*100,digits = 1),'%')
+         ) %>% 
+  rename(County=county,
+        TotalTested=RowTots,
+         Positivity=prec_pos,
+         Recall=rec_pos,
+         TotalPositive_col=Tot_Pos) %>%
+  arrange(RiskOutcome,desc(Positivity))
+tbl_combiRsk %>% kbl(caption ="<center><strong>Positivity by Risk Outcomes</strong></center>") %>%
+  kable_classic("hover", full_width = F,html_font = "Cambria") 
+```
+
+```{r positivityAge, echo=FALSE, warning=FALSE}
+# Output Positivity for Each County
+posit_age <- combi %>% group_by(county,AgeGroup,FinalTestResult) %>% summarise(num=n()) %>% ungroup()
+# Pivot Wider Final Test Result becomes the Columns, Risk Outcome becomes the Rows
+posit_age <- posit_age %>% pivot_wider(names_from = FinalTestResult, values_from = num)
+posit_age <-posit_age %>% mutate(TotalTested=Positive+Negative,
+positivity=(Positive/TotalTested))
+
+posit_age$groupCounty <- factor(posit_age$county,      # Reordering group factor levels
+                         levels = c("Siaya", "Homabay", "Nairobi", "Machakos"))
+
+ggplot(posit_age,aes(x=reorder(AgeGroup, -positivity),y=positivity,fill=AgeGroup))+
+  geom_bar(stat="identity",position = 'dodge')+
+  facet_grid(. ~groupCounty)  +
+ geom_text(aes(label=paste0(round((positivity*100),digits=1),'%')),vjust = 1.09,
+             position = position_dodge(.9), size = 4) +
+  ggtitle('Positivity by Age Group')+
+  xlab('Age Group')+ylab('Positivity') +
+theme(
+plot.title = element_text(color="#993333", size=16, face="bold.italic", hjust = 0.5),
+plot.subtitle = element_text(hjust=0.5),
+axis.title.x = element_text(color="#993333", size=12),
+axis.title.y = element_text(color="#993333", size=12),
+axis.text.x = element_text(size=10,angle=90,vjust=0.2)
+)+
+scale_y_continuous(labels = scales::percent)
+```
+```{r positivityAge_tbl, echo=FALSE}
+posit_age %>% arrange(county,desc(AgeGroup)) %>%
+  mutate(positivity=paste0(round(positivity*100,digits = 1),'%')) %>%
+kbl(caption ="<center><strong>Positivity - Testing by Age Group</strong></center>") %>%
+  kable_classic("hover", full_width = F,html_font = "Cambria") 
+```
+
+
+```{r precisionAge, echo=FALSE}
+combiHighRisksAge$groupCounty <- factor(combiHighRisksAge$county,      # Reordering group factor levels
+                         levels = c("Siaya", "Homabay", "Nairobi", "Machakos"))
+
+ggplot(combiHighRisksAge,aes(x=reorder(RiskOutcome, -prec_pos),y=prec_pos,fill=AgeGroup))+
+  geom_bar(stat="identity",position = 'dodge')+
+  facet_grid(. ~groupCounty)  +
+ geom_text(aes(label=paste0(round((prec_pos*100),digits=1),'%')),vjust = 1.09,
+             position = position_dodge(.9), size = 3.5) +
+  ggtitle('Positivity by Age Group - Different Risk Outcomes',subtitle ='When Different risks are tested')+
+  xlab('Age Group')+ylab('Positivity') +
+theme(
+plot.title = element_text(color="#993333", size=16, face="bold.italic", hjust = 0.5),
+plot.subtitle = element_text(hjust=0.5),
+axis.title.x = element_text(color="#993333", size=12),
+axis.title.y = element_text(color="#993333", size=12),
+axis.text.x = element_text(size=10,angle=90,vjust=0.2)
+)+
+scale_y_continuous(labels = scales::percent)
+
+```
+```{r precisionAgeCty, echo=FALSE}
+
+tbl_combiRskAge<-combiHighRisksAge %>% select(RiskOutcome,AgeGroup,county,Negative,Positive,RowTots,prec_pos,Tot_Pos,rec_pos) %>%
+  mutate(prec_pos=paste0(round(prec_pos*100,digits = 1),'%'),
+         rec_pos=paste0(round(rec_pos*100,digits = 1),'%')
+         ) %>% 
+  rename(County=county,
+        TotalTested=RowTots,
+         Positivity=prec_pos,
+         Recall=rec_pos,
+         TotalPositive_col=Tot_Pos) %>%
+  arrange(RiskOutcome)
+tbl_combiRskAge %>% kbl(caption ="<center><strong>Positivity - When Different Groups are Tested</strong></center>") %>%
+  kable_classic_2("hover", full_width = T,html_font = "Cambria")
+```
+
+
+

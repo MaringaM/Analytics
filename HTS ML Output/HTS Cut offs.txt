@@ -1,0 +1,12 @@
+Siaya 
+Highest risk: >= 0.508 | High risk: >= 0.26 | Medium risk: >= 0.076 | Low risk: < 0.076
+Machakos
+Highest risk: >= 0.372 | High risk: >= 0.25 | Medium risk: >= 0.094 | Low risk: < 0.094
+Nairobi
+Highest risk: >= 0.562 | High risk: >= 0.274 | Medium risk: >= 0.088 | Low risk: < 0.088
+Homabay
+Highest risk: >= 0.362 | High risk: >= 0.188 | Medium risk: >= 0.05 | Low risk: < 0.05
+
+
+precision - Ability to identify true positives 
+Recall - Model identifying all positives
