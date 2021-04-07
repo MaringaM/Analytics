@@ -15,6 +15,15 @@ nairobi <-nairobi %>% mutate(county='Nairobi')
 siaya <-siaya %>% mutate(county='Siaya')
 homabay <-homabay %>% mutate(county='Homabay')
 
+# Create Function for computing the Risk Outcomes for different Counties
+Set_RiskOutcome<-function(dataset,highestrisk,highrisk,mediumrisk){
+  df <- {{dataset}}%>% mutate(RiskOutcome = ifelse(Positive>={{highestrisk}},'Highest Risk',
+                                                   ifelse(Positive >={{highrisk}} & Positive<{{highestrisk}},'High Risk',
+                                                          ifelse(Positive>={{mediumrisk}} & Positive<{{highrisk}},'Medium Risk','Low Risk'))))
+  df$RiskOutcome<- factor(df$RiskOutcome,levels = c("Low Risk", "Medium Risk", "High Risk", "Highest Risk"))
+  return (df)
+}
+
 #Compute the Risk Outcomes  for the different Counties
 machakos <-Set_RiskOutcome(machakos,0.372,0.25,0.094)
 nairobi <-Set_RiskOutcome(nairobi,0.562,0.275,0.088)
@@ -23,6 +32,7 @@ homabay <-Set_RiskOutcome(homabay,0.362,0.188,0.05)
 
 #Combine the Nairobi and Machakos and Siaya Datasets
 combi <- rbind(machakos,nairobi,siaya,homabay)
+
  
 table(combi$RiskOutcome,combi$county)
 
@@ -41,7 +51,7 @@ positivity=(Positive/TotalTested))
 #Formatted Table 
 
 #Create Age Group Category
-combi <-combi %>% mutate(AgeGroup=ifelse(AgeAtTest<=15,'Under 15 Yrs','Over 15 Yrs'))
+combi <-combi %>% mutate(AgeGroup=ifelse(AgeAtTest<15,'Under 15 Yrs','Over 15 Yrs'))
 
 # Combine the 2 top risk outcomes
 combi <- combi %>% mutate(HHRiskOutcome = ifelse(RiskOutcome =='Highest Risk'| RiskOutcome =='High Risk','High Risk',
