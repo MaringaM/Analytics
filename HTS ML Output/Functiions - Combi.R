@@ -91,6 +91,8 @@ get_HighRisk<-function(dataset){
 hr <-{{dataset}} %>%
     filter((RiskOutcome=='Highest Risk' & type=='Highest Risk') | (RiskOutcome=='High Risk' & type=='HighestHigh Risks') 
            | (RiskOutcome=='High Risk' & type=='MediumHighestHigh Risks')|(RiskOutcome=='All Risk' & type=='All Risks')) %>%
+
+  
   mutate(RiskOutcome=ifelse((RiskOutcome=='Highest Risk' & type=='Highest Risk'),"Highest Risk",
                               ifelse((RiskOutcome=='High Risk' & type=='HighestHigh Risks'),"Highest&High Risk",
                                    ifelse((RiskOutcome=='High Risk' & type=='MediumHighestHigh Risks'),'HighestHigh&Medium Risks',"All Risks"

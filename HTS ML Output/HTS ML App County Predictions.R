@@ -1,6 +1,7 @@
 library('tidyverse')
 library('ggplot2')
-library(kableExtra)
+library('kableExtra')
+library('Hmisc') #This Library will help in dividing the data into groups  using the cut function
 
 source("C:/Users/Admin/OneDrive/Analytics/HTS ML Output/Functiions - Combi.R")
 
@@ -33,13 +34,23 @@ homabay <-Set_RiskOutcome(homabay,0.362,0.188,0.05)
 #Combine the Nairobi and Machakos and Siaya Datasets
 combi <- rbind(machakos,nairobi,siaya,homabay)
 
- 
-table(combi$RiskOutcome,combi$county)
-
 rm(machakos)
 rm(nairobi)
 rm(siaya)
 rm(homabay)
+
+
+# Include RowNumber in Combined Dataset
+combi <- combi %>% mutate(rowNum=row_number())
+#Put the Testing Data into Groups
+combi$RowGroup<-as.numeric(cut2(combi$rowNum, g=10))
+combi$RowGroup<-combi$RowGroup*10
+
+combi <- combi %>% group_by(FinalTestResult,RowGroup)%>% mutate(ResRowNum=row_number()) %>% ungroup()
+
+table(combi$RiskOutcome,combi$county)
+
+
 
 # Output Positivity for Each County
 posit <- combi %>% group_by(county,FinalTestResult) %>% summarise(num=n()) %>% ungroup()
@@ -47,8 +58,6 @@ posit <- combi %>% group_by(county,FinalTestResult) %>% summarise(num=n()) %>% u
 posit <- posit %>% pivot_wider(names_from = FinalTestResult, values_from = num)
 posit <-posit %>% mutate(TotalTested=Positive+Negative,
 positivity=(Positive/TotalTested))
-
-#Formatted Table 
 
 #Create Age Group Category
 combi <-combi %>% mutate(AgeGroup=ifelse(AgeAtTest<15,'Under 15 Yrs','Over 15 Yrs'))
@@ -64,8 +73,6 @@ combi$HHMRiskOutcome<- factor(combi$HHMRiskOutcome,levels = c("Low Risk","High R
 
 combi <- combi %>% mutate(HHMLRiskOutcome = ifelse(RiskOutcome =='Highest Risk'| RiskOutcome =='High Risk' | RiskOutcome =='Medium Risk' |RiskOutcome =='Low Risk',
                                                   'All Risk','Aii'))
-
-
 
 # Combine the 4 Risks
 combiRisks<-rbind(Set_Risk_Summary(combi,HHMLRiskOutcome,'All Risks'),
@@ -85,3 +92,16 @@ combiRisksAge<-rbind(Set_Risk_Age_Summary(combi,HHMLRiskOutcome,AgeGroup,'All Ri
                      Set_Risk_Age_Summary(combi,HHMRiskOutcome,AgeGroup,'MediumHighestHigh Risks'))
 
 combiHighRisksAge<-get_HighRisk(combiRisksAge)
+
+
+
+#Compute Negative and Totals based on the 
+overallForRecall<-combi %>% group_by(FinalTestResult) %>%
+  summarise(sumres=n()) %>% 
+  ungroup()
+overallForRecall <- overallForRecall  %>%  pivot_wider(names_from = FinalTestResult, values_from = sumres)
+
+overallForRecall <- overallForRecall %>% rename(Tot_Neg=Negative,
+                                                Tot_Pos=Positive)
+
+overallForRecall <- overallForRecall %>% mutate(Tot_Test=Tot_Neg + Tot_Pos)

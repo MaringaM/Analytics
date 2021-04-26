@@ -16,6 +16,8 @@ knitr::opts_chunk$set(
 )
 library(kableExtra)
 library(formattable)
+library(plotly)
+
 ```
 
 ```{r loaddata, include=FALSE}
@@ -50,7 +52,28 @@ tbl_combi %>% kbl(caption ="<center><strong>Overall Positivity by County</strong
   kable_classic_2("hover", full_width = F,html_font = "Cambria")
 ```
 
-### Positive Precision by County for Different Risk Factor Combinations
+
+### Positive Precision for Different by % of patients tested
+
+```{r fig.height=5, fig.width=10}
+combi_cum$groupRowGroup <- factor(combi_cum$RowGroup,      # Reordering group factor levels
+                         levels = c("10", "20", "30", "40","50","60","70","80","90","100"))
+
+ggplot(combi_cum,aes(x=-csum_pos_prec))+
+  geom_line(aes(y=csum_pos_prec,group=1),position = 'dodge',color='red',size = 1)+
+  geom_point(aes(y=csum_pos_prec,group=1))+
+  geom_line(aes(y=csum_pos_rec,group=1),position = 'dodge',color='blue',size = 1)+
+  geom_point(aes(y=csum_pos_rec,group=1))+
+  ggtitle('Positivity by Risk Outcomes')+
+  xlab('Risk Outcomes')+ylab('Positivity') +
+theme(
+plot.title = element_text(color="#993333", size=16, face="bold.italic", hjust = 0.5),
+axis.title.x = element_text(color="#993333", size=12),
+axis.title.y = element_text(color="#993333", size=12),
+axis.text.x = element_text(size=10,angle=90,vjust=0.2)
+)+
+scale_y_continuous(labels = scales::percent)
+```
 
 Predictions are not binary "positive" or "negative"; rather, they are numbers between 0 to 1 akin to probabilities. For each threshold from 0 to 1, we calculate precision and recall and plot the points on a curve and thus come up with cut off points.
 
@@ -61,11 +84,17 @@ For Siaya County: we expect that of the people we test with a "Highest Risk Outc
 ```{r precision, echo=FALSE}
 combiHighRisk$groupCounty <- factor(combiHighRisk$county,      # Reordering group factor levels
                          levels = c("Siaya", "Homabay", "Nairobi", "Machakos"))
-ggplot(combiHighRisk,aes(x=reorder(RiskOutcome,-prec_pos),y=prec_pos,fill=RiskOutcome))+
-  geom_bar(stat="identity",position = 'dodge')+
-  facet_grid(. ~groupCounty)  +
- geom_text(aes(label=paste0(round((prec_pos*100),digits=1),'%')),vjust = 1.09,
-             position = position_dodge(.9), size = 3.5) +
+
+lbl=paste("n:",combiHighRisk$RowTots,"\n",paste0(round((combiHighRisk$prec_pos*100),digits=1),'%'))
+pt_values <- combiHighRisk %>% select(RiskOutcome,county,rec_pos,prec_pos) %>% 
+    group_by(RiskOutcome,county) 
+
+ggplot(combiHighRisk)+
+  geom_col(aes(x=reorder(RiskOutcome,-prec_pos),y=prec_pos,fill=RiskOutcome),stat="identity",position = 'dodge' )+
+  geom_line(aes(x=reorder(RiskOutcome,-prec_pos), y=rec_pos,group=1),position = 'dodge',color='black',size = 0.5)+
+  geom_point(aes(x=reorder(RiskOutcome,rec_pos), y=rec_pos),alpha = 0.5) +
+  facet_wrap(. ~groupCounty)  +
+  geom_text(aes(x=reorder(RiskOutcome,-prec_pos), y=prec_pos,label=lbl),vjust = 0.7,position = position_dodge(.9), size = 3.5, check_overlap = TRUE) +
   ggtitle('Positivity by Risk Outcomes')+
   xlab('Risk Outcomes')+ylab('Positivity') +
 theme(
@@ -74,9 +103,12 @@ axis.title.x = element_text(color="#993333", size=12),
 axis.title.y = element_text(color="#993333", size=12),
 axis.text.x = element_text(size=10,angle=90,vjust=0.2)
 )+
-scale_y_continuous(labels = scales::percent,limit=c(0,0.80))
+scale_y_continuous(labels = scales::percent)
+
 
 ```
+
+
 ```{r echo=FALSE}
 #Formatted Table 
 tbl_combiRsk<-combiHighRisk %>% select(RiskOutcome,county,Negative,Positive,RowTots,prec_pos,Tot_Pos,rec_pos) %>%
@@ -101,12 +133,13 @@ posit_age <- posit_age %>% pivot_wider(names_from = FinalTestResult, values_from
 posit_age <-posit_age %>% mutate(TotalTested=Positive+Negative,
 positivity=(Positive/TotalTested))
 
-posit_age$groupCounty <- factor(posit_age$county,      # Reordering group factor levels
+posit_age$county <- factor(posit_age$county,      # Reordering group factor levels
                          levels = c("Siaya", "Homabay", "Nairobi", "Machakos"))
+
 
 ggplot(posit_age,aes(x=reorder(AgeGroup, -positivity),y=positivity,fill=AgeGroup))+
   geom_bar(stat="identity",position = 'dodge')+
-  facet_grid(. ~groupCounty)  +
+  facet_grid(. ~county)  +
  geom_text(aes(label=paste0(round((positivity*100),digits=1),'%')),vjust = 1.09,
              position = position_dodge(.9), size = 4) +
   ggtitle('Positivity by Age Group')+
@@ -165,5 +198,10 @@ tbl_combiRskAge %>% kbl(caption ="<center><strong>Positivity - When Different Gr
   kable_classic_2("hover", full_width = T,html_font = "Cambria")
 ```
 
+
+
+```{r}
+
+```
 
 
