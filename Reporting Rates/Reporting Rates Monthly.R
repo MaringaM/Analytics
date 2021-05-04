@@ -5,13 +5,13 @@ library(readxl)
 library(lubridate)
 
 #Set Working Directory
-setwd("D:/Dropbox/Maggie Scripts/Data Warehouse Scripts/Data Analysis/Reporting Rates")
+setwd("C:/Users/Admin/Desktop/Reporting Rates")
 
 #Read in the excel raw data
-rr<-read_excel("ReportingRatesCT_Feb2020.xlsx")
+rr<-read_excel("ReportingRates CT Raw.xlsx")
 
 #Declare From and To Dates
-FromDate=as.Date("2021-02-01",origin = "1899-12-30")
+FromDate=as.Date("2021-04-01",origin = "1899-12-30")
 ToDate=ceiling_date(ymd(as.Date(FromDate)) %m+% months(0), "month")+days(4)
 
 #Replace NULL with na in the entire dataset
@@ -50,15 +50,15 @@ rr_denom <-rr %>% select(DisplayMFL, DisplayFacilityName, DisplayCounty, Display
   select(-rownum)
 
 ###   CT RECENCY
+
 #Filter the Data to the specific RR Period
 ct_recency<-rr %>%filter((UploadDate>=FromDate & UploadDate <=ToDate))
 length(ct_recency$DisplayMFL)
 
-#Number of Duplicates in CT_Recency
+#Number of Duplicates in CT_Recency Those that reported in both April and between 1st and 5th May
 length(ct_recency$DisplayMFL) - length(unique(ct_recency$DisplayMFL))
 
-#Remove duplicates.
-#Making Sure we are counting a site only once within the reporting period being looked at
+#Remove duplicates.Making Sure we are counting a site only once within the reporting period being looked at
 ct_recency <-ct_recency %>%   group_by(DisplayMFL) %>%   mutate(rownum = row_number()) %>%
   filter(rownum == 1) %>%  ungroup() %>%  select(-rownum)
 
@@ -126,44 +126,45 @@ combined_rr<-merge(x = rt2, y = ct_consistency, by = "DisplayMFL", all.x = TRUE)
 rm(rt2)
 rm(ct_consistency)
 
+# Generate Consistency raw dataset
 combined_rr <-combined_rr %>%
   select(DisplayMFL,FacilityName,County,Subcounty,CTPartner,Agency,UploadDate,UploadDate_MPI,sums)
 
+# Filter out the sites that have reported 3 times or more between the From and to date
 combined_rr <- combined_rr %>% select(DisplayMFL,FacilityName,County,Subcounty,CTPartner,Agency,UploadDate,UploadDate_MPI,sums) %>%
   mutate(ct_recency=ifelse(!is.na(UploadDate),1,0),
          mpi_recency=ifelse(!is.na(UploadDate_MPI),1,0),
          ct_consistency=ifelse(sums==3,1,0))
 
-bs <-combined_rr %>% filter(CTPartner=="AFYA JIJINI" & sums==3)
-
+# Create a data frame that has expected uploads, Recency of Reporting and Consistency by County
 CT_ByCounty <- combined_rr %>%
   group_by(County) %>%
   summarise(numsites=n(),
             Recency=sum(ct_recency),
-            per_CTRecency=paste(round(((Recency/numsites)*100),digits=0),'%'),
+            per_CTRecency=(Recency/numsites),
             CTConsistency=sum(ct_consistency,na.rm = TRUE),
-            per_CTConsistency=paste(round(((CTConsistency/numsites)*100),digits=0),'%'),
+            per_CTConsistency=(CTConsistency/numsites),
             MPI_Recency=sum(mpi_recency,na.rm = TRUE),
-            per_MPIRecency=paste(round(((MPI_Recency/numsites)*100),digits=0),'%')) %>%
+            per_MPIRecency=(MPI_Recency/numsites)) %>%
   ungroup()
 sum(CT_ByCounty$CTConsistency)
 
-
+# Create a data frame that has expected uploads, Recency of Reporting and Consistency by Partner
 CT_ByPartner <- combined_rr %>%
   group_by(CTPartner) %>%
   summarise(numsites=n(),
             ct_recency=sum(ct_recency),
-            per_CTRecency=paste(round(((ct_recency/numsites)*100),digits=0),'%'),
+            per_CTRecency=(ct_recency/numsites),
             CTConsistency=sum(ct_consistency,na.rm = TRUE),
-            per_CTConsistency=paste(round(((CTConsistency/numsites)*100),digits=0),'%'),
+            per_CTConsistency=(CTConsistency/numsites),
             mpi_recency=sum(mpi_recency),
-            per_MPIRecency=paste(round(((mpi_recency/numsites)*100),digits=0),'%')) %>%
+            per_MPIRecency=(mpi_recency/numsites)) %>%
   ungroup()
 
 
-
+FileName=paste0("ReportingRates_CT_",format(FromDate, format = "%B%Y"),".xlsx")
 list_of_datasets <- list("CT_ByCounty" = CT_ByCounty, "CT_ByPartner" = CT_ByPartner)
-write.xlsx(list_of_datasets, file = "CT_RR_Output_Feb2021.xlsx")
+write.xlsx(list_of_datasets, file = FileName)
 
 
 
