@@ -16,14 +16,7 @@ nairobi <-nairobi %>% mutate(county='Nairobi')
 siaya <-siaya %>% mutate(county='Siaya')
 homabay <-homabay %>% mutate(county='Homabay')
 
-# Create Function for computing the Risk Outcomes for different Counties
-Set_RiskOutcome<-function(dataset,highestrisk,highrisk,mediumrisk){
-  df <- {{dataset}}%>% mutate(RiskOutcome = ifelse(Positive>={{highestrisk}},'Highest Risk',
-                                                   ifelse(Positive >={{highrisk}} & Positive<{{highestrisk}},'High Risk',
-                                                          ifelse(Positive>={{mediumrisk}} & Positive<{{highrisk}},'Medium Risk','Low Risk'))))
-  df$RiskOutcome<- factor(df$RiskOutcome,levels = c("Low Risk", "Medium Risk", "High Risk", "Highest Risk"))
-  return (df)
-}
+
 
 #Compute the Risk Outcomes  for the different Counties
 machakos <-Set_RiskOutcome(machakos,0.372,0.25,0.094)
@@ -34,6 +27,11 @@ homabay <-Set_RiskOutcome(homabay,0.362,0.188,0.05)
 #Combine the Nairobi and Machakos and Siaya Datasets
 combi <- rbind(machakos,nairobi,siaya,homabay)
 
+# Reordering group factor levels
+combi$county <- factor(combi$county,  levels = c("Siaya", "Homabay", "Nairobi", "Machakos"))
+
+
+
 rm(machakos)
 rm(nairobi)
 rm(siaya)
@@ -41,15 +39,15 @@ rm(homabay)
 
 
 # Include RowNumber in Combined Dataset
-combi <- combi %>% mutate(rowNum=row_number())
+combi <- combi %>% 
+  arrange(desc(Positive)) %>%
+  mutate(rowNum=row_number())
 #Put the Testing Data into Groups
 combi$RowGroup<-as.numeric(cut2(combi$rowNum, g=10))
 combi$RowGroup<-combi$RowGroup*10
 
 combi <- combi %>% group_by(FinalTestResult,RowGroup)%>% mutate(ResRowNum=row_number()) %>% ungroup()
-
 table(combi$RiskOutcome,combi$county)
-
 
 
 # Output Positivity for Each County
@@ -61,6 +59,12 @@ positivity=(Positive/TotalTested))
 
 #Create Age Group Category
 combi <-combi %>% mutate(AgeGroup=ifelse(AgeAtTest<15,'Under 15 Yrs','Over 15 Yrs'))
+
+#Create Age Group Category - Based on DATIM
+combi <-combi %>% mutate(Age_Grp=ifelse(AgeAtTest<=9,'Under 10 Yrs',
+                                         ifelse(AgeAtTest>=10 & AgeAtTest<=10, '10 to 14 Yrs',
+                                                ifelse(AgeAtTest>=15 & AgeAtTest<=19, '15 to 19 Yrs',"Over 20 Years"
+                                                       ))))
 
 # Combine the 2 top risk outcomes
 combi <- combi %>% mutate(HHRiskOutcome = ifelse(RiskOutcome =='Highest Risk'| RiskOutcome =='High Risk','High Risk',
@@ -74,6 +78,8 @@ combi$HHMRiskOutcome<- factor(combi$HHMRiskOutcome,levels = c("Low Risk","High R
 combi <- combi %>% mutate(HHMLRiskOutcome = ifelse(RiskOutcome =='Highest Risk'| RiskOutcome =='High Risk' | RiskOutcome =='Medium Risk' |RiskOutcome =='Low Risk',
                                                   'All Risk','Aii'))
 
+saveRDS(combi, file = "combi.rds")
+
 # Combine the 4 Risks
 combiRisks<-rbind(Set_Risk_Summary(combi,HHMLRiskOutcome,'All Risks'),
                   Set_Risk_Summary(combi,RiskOutcome,'Highest Risk'),
@@ -82,6 +88,7 @@ combiRisks<-rbind(Set_Risk_Summary(combi,HHMLRiskOutcome,'All Risks'),
 
 combiHighRisk<-get_HighRisk(combiRisks)
 
+saveRDS(combiHighRisk, file = "combiHighRisk.rds")
 
 
 # Summarize the Risk Outcomes by Final Test Result and Age Group
@@ -93,15 +100,17 @@ combiRisksAge<-rbind(Set_Risk_Age_Summary(combi,HHMLRiskOutcome,AgeGroup,'All Ri
 
 combiHighRisksAge<-get_HighRisk(combiRisksAge)
 
+saveRDS(combiHighRisksAge, file = "combiHighRisksAge.rds")
+# Summarize the Risk Outcomes by Final Test Result and Age Group (Including 10-14, 15-19)
 
+combiRisksAgeGrp<-rbind(Set_Risk_Age_Summary(combi,HHMLRiskOutcome,Age_Grp,'All Risks'),
+                     Set_Risk_Age_Summary(combi,RiskOutcome,Age_Grp,'All Risk'),
+                     Set_Risk_Age_Summary(combi,HHRiskOutcome,Age_Grp,'HighestHigh Risks'),
+                     Set_Risk_Age_Summary(combi,HHMRiskOutcome,Age_Grp,'MediumHighestHigh Risks'))
 
-#Compute Negative and Totals based on the 
-overallForRecall<-combi %>% group_by(FinalTestResult) %>%
-  summarise(sumres=n()) %>% 
-  ungroup()
-overallForRecall <- overallForRecall  %>%  pivot_wider(names_from = FinalTestResult, values_from = sumres)
+combiHighRisksAgeGrp<-get_HighRisk(combiRisksAgeGrp)
 
-overallForRecall <- overallForRecall %>% rename(Tot_Neg=Negative,
-                                                Tot_Pos=Positive)
+combiHighRisksAgeGrp_Adole <- combiHighRisksAgeGrp %>% 
+  filter(Age_Grp %in% c("Under 10 Yrs","10 to 14 Yrs","15 to 19 Yrs"))
+saveRDS(combiHighRisksAgeGrp_Adole, file = "combiHighRisksAgeGrp_Adole.rds")
 
-overallForRecall <- overallForRecall %>% mutate(Tot_Test=Tot_Neg + Tot_Pos)

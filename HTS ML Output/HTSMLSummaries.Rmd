@@ -10,9 +10,8 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
 	echo = TRUE,
-	fig.height = 10,
-	fig.width = 15,
-	warning = FALSE
+	warning = FALSE,
+	message = FALSE
 )
 library(kableExtra)
 library(formattable)
@@ -20,7 +19,7 @@ library(plotly)
 
 ```
 
-```{r loaddata, include=FALSE}
+```{r loaddata, include=FALSE, warning=FALSE,message=FALSE}
 source("C:/Users/Admin/OneDrive/Analytics/HTS ML Output/HTS ML App County Predictions.R")
 ```
 
@@ -29,7 +28,7 @@ This document shows validation summaries for the HTS Machine Learning Screening 
 
 ### Overall Positivity
 
-```{r overallpositivity, echo=FALSE}
+```{r overallpositivity, echo=FALSE, 	fig.height = 10,	fig.width = 15}
 ggplot(posit,aes(x=reorder(county, -positivity),y=positivity))+
   geom_bar(stat="identity",fill="steelblue")+
   geom_text(aes(label=paste0(round((positivity*100),digits=1),'%')), position=position_stack(vjust=1.05)) +
@@ -47,9 +46,9 @@ scale_y_continuous(labels = scales::percent,limit=c(0,0.06))
 tbl_combi<-posit %>% arrange(desc(positivity)) %>%
   mutate(positivity=paste0(round(positivity*100,digits = 1),'%')) 
 
-
-tbl_combi %>% kbl(caption ="<center><strong>Overall Positivity by County</strong></center>") %>%
-  kable_classic_2("hover", full_width = F,html_font = "Cambria")
+tbl_combi %>% 
+  kbl(caption ="<center><strong>Overall Positivity by County</strong></center>") %>%
+  kable_classic_2(position = "center",html_font = "Arial Narrow",bootstrap_options = c("condensed","stripped"),full_width = T, font_size = 20)
 ```
 
 

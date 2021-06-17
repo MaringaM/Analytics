@@ -1,0 +1,93 @@
+---
+title: "HTS ML Adolescents"
+author: "Margie"
+date: "5/6/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	message = FALSE
+)
+library(kableExtra)
+library(formattable)
+library(plotly)
+library(tidyr)
+library(dplyr)
+```
+
+## R Markdown
+
+```{r loaddata, include=FALSE, warning=FALSE,message=FALSE}
+combi<-readRDS(file = "combi.rds")
+combiHighRisksAgeGrp_Adole<-readRDS(file = "combiHighRisksAgeGrp_Adole.rds")
+source("C:/Users/Admin/OneDrive/Analytics/HTS ML Output/Functiions - Combi.R")
+```
+
+### HTS ML VALIDATION
+This document shows validation summaries for the HTS Machine Learning Screening Application developed for  counties - Specifically Focusing on Under 20 Year Olds.
+
+### Overall Positivity - Adolescents 
+##### Under 10, 10 to 14 and 15 to 19
+```{r, include=FALSE}
+positivityAgeGrp<-set_positivity_CountyNVars(combi,Age_Grp)
+positivityAgeGrp<-positivityAgeGrp %>% filter(Age_Grp %in% c("Under 10 Yrs", "10 to 14 Yrs","15 to 19 Yrs"))
+
+# Reordering group factor levels
+positivityAgeGrp$Age_Grp <- factor(positivityAgeGrp$Age_Grp,      
+                        levels = c("Under 10 Yrs", "10 to 14 Yrs", "15 to 19 Yrs","Over 20 Years"))
+```
+
+```{r positivity, fig.align='center'}
+ggplot(positivityAgeGrp,aes(x=Age_Grp,y=Positivity,fill=Age_Grp)) +
+  geom_bar(stat="identity")+
+  facet_grid(. ~county)  +
+  ggtitle("Adolescents Positivity by County")+
+  ylab("Positivity (%)")+
+  xlab("")+
+  labs(fill="Age Group")+ # Rename Legend
+  theme(
+    axis.text.x = element_text(size=10,angle=75,vjust=0.2),
+    plot.title = element_text(hjust=0.5)
+  )+
+  geom_text(aes(label=paste0(round((Positivity*100),digits=1),'%')),vjust = 0,
+             position = position_dodge(.9), size = 3.2)+
+ scale_y_continuous(labels = scales::percent)
+```
+
+```{r overallpositivity_tbl, echo=FALSE}
+tbl_combi<-positivityAgeGrp %>% arrange(desc(Positivity)) %>%
+  mutate(Positivity=paste0(round(Positivity*100,digits = 1),'%')) %>%
+           arrange(county,Age_Grp) 
+
+tbl_combi %>% 
+  kbl(caption ="<center><strong>Overall Positivity by County</strong></center>") %>%
+  kable_classic_2(position = "center",html_font = "Arial Narrow",bootstrap_options = c("condensed","stripped"),full_width = T, font_size = 20)
+```
+```{r}
+combiHighRisksAgeGrp_Adole$groupCounty <- factor(combiHighRisksAgeGrp_Adole$county,     
+                         levels = c("Siaya", "Homabay", "Nairobi", "Machakos"))
+```
+
+
+### Overall Positivity by Risk Outcomes - Adolescents 
+##### Under 10, 10 to 14 and 15 to 19
+```{r positivityAge, echo=FALSE, warning=FALSE, fig.width=15, fig.height=13}
+ggplot(combiHighRisksAgeGrp_Adole,aes(x=reorder(RiskOutcome, -prec_pos),y=prec_pos,fill=Age_Grp))+
+  geom_bar(stat="identity",position = 'dodge')+
+  facet_grid(. ~groupCounty)  +
+ geom_text(aes(label=paste0(round((prec_pos*100),digits=1),'%')),vjust =0.5,hjust=0.5,
+             position = position_dodge(width=1), size = 4.5,angle = 90) +
+  ggtitle('Positivity by Age Group - Different Risk Outcomes',subtitle ='When Different risks are tested')+
+  xlab('Age Group')+ylab('Positivity') +
+theme(
+plot.title = element_text(color="#993333", size=16, face="bold.italic", hjust = 0.5),
+plot.subtitle = element_text(hjust=0.5),
+axis.title.x = element_text(color="#993333", size=12),
+axis.title.y = element_text(color="#993333", size=12),
+axis.text.x = element_text(size=14,angle=90,vjust=0)
+)+
+scale_y_continuous(labels = scales::percent)
+```
