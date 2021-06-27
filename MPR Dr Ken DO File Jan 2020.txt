@@ -1,0 +1,2205 @@
+-----------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\user\Documents\Palladium\Hackathon\MPR variables\2020\mpr2020Jan.log
+  log type:  text
+ opened on:  20 Jan 2020, 12:03:14
+
+. 
+. 
+. 
+. use "MPR2020Jan_v3.dta"
+
+. ***************************************
+. 
+. sort sitecode patientid
+
+. bysort sitecode patientid: gen index=_n
+
+. count if index>1
+  4,809
+
+. keep if index==1
+(4,809 observations deleted)
+
+. gen pid1=_n
+
+. count
+  1,793,643
+
+. 
+. 
+. gen county1=lower(county)
+
+. drop county
+
+. 
+. /*emr data*/
+. replace emr= "AMRS" if emr=="Ampath AMRS"
+(97 real changes made)
+
+. replace emr= "OpenMRS" if emr=="Open Medical Records System - OpenMRS"
+(43 real changes made)
+
+. replace emr= "OpenMRS" if emr=="FACES OpenMRS"
+(8,695 real changes made)
+
+. 
+. /*gen year of art start*/
+. gen artstart_date = date(startartdate , "YMD")
+(486,240 missing values generated)
+
+. drop if missing(artstart_date )
+(486,240 observations deleted)
+
+. gen yr_artstart = year(artstart_date )
+
+. ta yr_artstart
+
+yr_artstart |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       1899 |          3        0.00        0.00
+       1900 |      1,075        0.08        0.08
+       1902 |          1        0.00        0.08
+       1907 |          1        0.00        0.08
+       1911 |          1        0.00        0.08
+       1931 |          1        0.00        0.08
+       1964 |          2        0.00        0.08
+       1973 |          1        0.00        0.08
+       1978 |          6        0.00        0.08
+       1982 |          2        0.00        0.08
+       1984 |          1        0.00        0.08
+       1986 |          1        0.00        0.08
+       1987 |          2        0.00        0.08
+       1988 |          1        0.00        0.08
+       1990 |          3        0.00        0.08
+       1991 |          1        0.00        0.08
+       1992 |          1        0.00        0.08
+       1994 |          6        0.00        0.08
+       1995 |          5        0.00        0.09
+       1996 |         15        0.00        0.09
+       1997 |         93        0.01        0.09
+       1998 |         26        0.00        0.10
+       1999 |         18        0.00        0.10
+       2000 |        131        0.01        0.11
+       2001 |        192        0.01        0.12
+       2002 |      1,170        0.09        0.21
+       2003 |      2,888        0.22        0.43
+       2004 |     10,404        0.80        1.23
+       2005 |     25,276        1.93        3.16
+       2006 |     45,469        3.48        6.64
+       2007 |     59,528        4.55       11.19
+       2008 |     67,058        5.13       16.32
+       2009 |     79,208        6.06       22.38
+       2010 |     87,526        6.69       29.07
+       2011 |    100,616        7.70       36.77
+       2012 |     98,437        7.53       44.30
+       2013 |     88,751        6.79       51.09
+       2014 |    127,951        9.79       60.87
+       2015 |    110,806        8.48       69.35
+       2016 |    132,922       10.17       79.52
+       2017 |    103,426        7.91       87.43
+       2018 |     93,248        7.13       94.56
+       2019 |     70,910        5.42       99.98
+       2020 |        217        0.02      100.00
+       2103 |          1        0.00      100.00
+       2201 |          1        0.00      100.00
+       3013 |          1        0.00      100.00
+------------+-----------------------------------
+      Total |  1,307,403      100.00
+
+. drop if yr_artstart<2004
+(5,647 observations deleted)
+
+. drop if yr_artstart>2019
+(220 observations deleted)
+
+. ta yr_artstart
+
+yr_artstart |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       2004 |     10,404        0.80        0.80
+       2005 |     25,276        1.94        2.74
+       2006 |     45,469        3.49        6.23
+       2007 |     59,528        4.57       10.81
+       2008 |     67,058        5.15       15.96
+       2009 |     79,208        6.09       22.05
+       2010 |     87,526        6.72       28.77
+       2011 |    100,616        7.73       36.50
+       2012 |     98,437        7.56       44.07
+       2013 |     88,751        6.82       50.88
+       2014 |    127,951        9.83       60.71
+       2015 |    110,806        8.51       69.23
+       2016 |    132,922       10.21       79.44
+       2017 |    103,426        7.95       87.39
+       2018 |     93,248        7.16       94.55
+       2019 |     70,910        5.45      100.00
+------------+-----------------------------------
+      Total |  1,301,536      100.00
+
+. ***
+. /*dates*/
+. gen exit_date = date(exitdate, "YMD")
+(891,162 missing values generated)
+
+. gen date_lvisit_tca2 = date(nextappointment, "YMD")
+(63,368 missing values generated)
+
+. gen last_visitdate = date(lastvisitdate , "YMD")
+(1 missing value generated)
+
+. gen date_last_art = date(v52 , "YMD")
+(3 missing values generated)
+
+. format artstart_date exit_date date_lvisit_tca2 last_visitdate date_last_art %td
+
+. *****************************************************************************************
+. 
+. drop startartdate exitdate nextappointment lastvisitdate v52
+
+. 
+. /*slide 1*/
+. ta yr_artstart sex
+
+yr_artstar |          Sex
+         t |         F          M |     Total
+-----------+----------------------+----------
+      2004 |     6,751      3,653 |    10,404 
+      2005 |    16,535      8,741 |    25,276 
+      2006 |    29,793     15,676 |    45,469 
+      2007 |    39,436     20,092 |    59,528 
+      2008 |    44,482     22,576 |    67,058 
+      2009 |    51,922     27,286 |    79,208 
+      2010 |    58,150     29,376 |    87,526 
+      2011 |    67,164     33,452 |   100,616 
+      2012 |    65,706     32,731 |    98,437 
+      2013 |    59,465     29,286 |    88,751 
+      2014 |    89,288     38,663 |   127,951 
+      2015 |    75,550     35,256 |   110,806 
+      2016 |    90,354     42,568 |   132,922 
+      2017 |    68,658     34,768 |   103,426 
+      2018 |    61,542     31,706 |    93,248 
+      2019 |    46,254     24,656 |    70,910 
+-----------+----------------------+----------
+     Total |   871,050    430,486 | 1,301,536 
+
+. 
+. 
+. /*age data */
+. destring agelastvisit, replace force
+agelastvisit: contains nonnumeric characters; replaced as int
+(1 missing value generated)
+
+. univar agelastvisit
+                                        -------------- Quantiles --------------
+Variable       n     Mean     S.D.      Min      .25      Mdn      .75      Max
+-------------------------------------------------------------------------------
+agelastvisit 1301535    37.69    85.33 -7985.00    28.00    37.00    46.00  8070.00
+-------------------------------------------------------------------------------
+
+. replace agelastvisit=. if age<0 | age>90
+(674 real changes made, 674 to missing)
+
+. recode agelastvisit (min/4.9999=1 "<5 yrs")(5.0/9.9999=2 "5-9 yrs")(10.0/14.9999=3 "10-14 yrs
+> ")(15.0/19.9999=4 "15-19 yrs")(20.0/24.9999=5 "20-24 yrs")(25.0/29.9999=6 "25-29 yrs")(30.0/3
+> 4.9999=7 "30-34 yrs")(35.0/39.9999=8 "35-39 yrs")(40.0/44.9999=9 "40-44 yrs")(45.0/49.9999=10
+>  "45-49 yrs")(50.0/54.9999=11 "50-54 yrs")(55.0/59.9999=12 "55-59 yrs")(60.0/64.9999=13 "60-6
+> 4 yrs")(65.0/max=14 ">65 yrs"), gen(cat_age_lastvisit)
+(1291914 differences between agelastvisit and cat_age_lastvisit)
+
+. ta cat_age_lastvisit, m
+
+  RECODE of |
+agelastvisi |
+          t |
+(AgeLastVis |
+        it) |      Freq.     Percent        Cum.
+------------+-----------------------------------
+     <5 yrs |     33,826        2.60        2.60
+    5-9 yrs |     29,419        2.26        4.86
+  10-14 yrs |     34,182        2.63        7.49
+  15-19 yrs |     41,715        3.21       10.69
+  20-24 yrs |     87,265        6.70       17.40
+  25-29 yrs |    140,357       10.78       28.18
+  30-34 yrs |    189,079       14.53       42.71
+  35-39 yrs |    187,505       14.41       57.11
+  40-44 yrs |    177,926       13.67       70.78
+  45-49 yrs |    139,162       10.69       81.48
+  50-54 yrs |     99,033        7.61       89.08
+  55-59 yrs |     68,503        5.26       94.35
+  60-64 yrs |     38,594        2.97       97.31
+    >65 yrs |     34,295        2.63       99.95
+          . |        675        0.05      100.00
+------------+-----------------------------------
+      Total |  1,301,536      100.00
+
+. 
+. 
+. /*population pyramid
+> import excel "C:\Users\user\Documents\Palladium\Hackathon\MPR variables\population pyramid MP
+> R2020.xlsx", sheet("Sheet1") firstrow clear
+> lab def age_grp2 1"<5y" 2"5-9y" 3"10-14y" 4"15-19y" 5"20-24y" 6"25-29y" 7"30-34y" 8"35-39y" 9
+> "40-44y" 10"45-49y" 11"50-54y" 12"55-59y" 13"60-64y" 14"65+y"
+> lab val age_grp2 age_grp2
+> replace maletotal=- maletotal
+> twoway bar maletotal age_grp2,  horizontal bfc("20 100 131"*0.6)  || bar femaletotal age_grp2
+> , horizontal bfc("226 174 156"*0.6)  || scatter age_grp2 zero, mlabel(age_grp2 ) mlabcolor(bl
+> ack) msymbol(none) xtitle("Number of patients ") ytitle("Age Group Number") ytitle("") yscale
+> (noline) ylabel(none) xlabel( -60000 "60000" -40000 "40000" -20000 "20000" 0(20000)160000) le
+> gend(off) text(15 -20000 "Male") text(15 20000 "Female")
+> 
+> */
+. 
+. encode sex, gen(sex_num)
+
+. univar agelastvisit, by(" sex_num ")
+
+-> sex_num=F 
+                                        -------------- Quantiles --------------
+Variable       n     Mean     S.D.      Min      .25      Mdn      .75      Max
+-------------------------------------------------------------------------------
+agelastvisit  870688    36.02    13.53     0.00    27.00    35.00    45.00    90.00
+-------------------------------------------------------------------------------
+
+-> sex_num=M 
+                                        -------------- Quantiles --------------
+Variable       n     Mean     S.D.      Min      .25      Mdn      .75      Max
+-------------------------------------------------------------------------------
+agelastvisit  430173    38.39    16.10     0.00    30.00    40.00    49.00    90.00
+-------------------------------------------------------------------------------
+
+. 
+. /*slide 3*/
+. ta county1
+
+         county1 |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+         baringo |      6,655        0.51        0.51
+           bomet |      1,608        0.12        0.63
+         bungoma |     29,145        2.24        2.87
+           busia |     54,841        4.21        7.09
+elegeyo-marakwet |      4,562        0.35        7.44
+            embu |     13,026        1.00        8.44
+        homa bay |    100,775        7.74       16.18
+          isiolo |         16        0.00       16.18
+         kajiado |     17,874        1.37       17.56
+        kakamega |     47,906        3.68       21.24
+         kericho |      1,773        0.14       21.37
+          kiambu |     50,743        3.90       25.27
+          kilifi |     16,675        1.28       26.55
+       kirinyaga |     11,822        0.91       27.46
+           kisii |     28,115        2.16       29.62
+          kisumu |     90,366        6.94       36.56
+           kitui |     23,969        1.84       38.41
+           kwale |     10,475        0.80       39.21
+        laikipia |     13,534        1.04       40.25
+            lamu |      2,352        0.18       40.43
+        machakos |     37,703        2.90       43.33
+         makueni |     25,226        1.94       45.27
+        marsabit |        742        0.06       45.32
+            meru |     26,027        2.00       47.32
+          migori |     54,317        4.17       51.50
+         mombasa |     32,340        2.48       53.98
+        murang'a |     27,974        2.15       56.13
+         nairobi |    185,412       14.25       70.38
+          nakuru |     41,676        3.20       73.58
+           nandi |     12,594        0.97       74.55
+           narok |      7,952        0.61       75.16
+         nyamira |     17,857        1.37       76.53
+       nyandarua |     15,044        1.16       77.68
+           nyeri |     29,103        2.24       79.92
+         samburu |      1,466        0.11       80.03
+           siaya |    112,927        8.68       88.71
+    taita taveta |      7,662        0.59       89.30
+      tana river |      1,468        0.11       89.41
+   tharaka-nithi |      8,847        0.68       90.09
+     trans nzoia |     27,464        2.11       92.20
+         turkana |     11,598        0.89       93.09
+     uasin gishu |     72,737        5.59       98.68
+          vihiga |     13,971        1.07       99.75
+      west pokot |      3,197        0.25      100.00
+-----------------+-----------------------------------
+           Total |  1,301,536      100.00
+
+. 
+. 
+. /*cleaning exit reason data*/
+. ta exitreason
+
+                          ExitReason |      Freq.     Percent        Cum.
+-------------------------------------+-----------------------------------
+                Abortion/Miscarriage |          2        0.00        0.00
+                              Active |        205        0.02        0.02
+           C - Cured(Smear Negative) |          1        0.00        0.02
+                           COMPLETED |      2,621        0.23        0.25
+             Cannot afford treatment |         53        0.00        0.25
+                              D-Dead |         15        0.00        0.25
+                               DEATH |        261        0.02        0.28
+                                DIED |          2        0.00        0.28
+                                Dead |         35        0.00        0.28
+                               Death |     29,645        2.60        2.88
+                           Defaulter |        628        0.06        2.93
+                                Died |     17,775        1.56        4.49
+     HIV NEGATIVE, NO LONGER AT RISK |         11        0.00        4.49
+                        HIV Negative |        191        0.02        4.51
+                        HIV Positive |        152        0.01        4.52
+                   LOST TO FOLLOW-UP |         39        0.00        4.52
+                                LTFU |      1,350        0.12        4.64
+                                Lost |     64,806        5.68       10.32
+                    Lost to followup |     17,479        1.53       11.85
+                                NULL |    727,616       63.76       75.61
+                               OTHER |         21        0.00       75.61
+                     OTHER NON-CODED |      2,196        0.19       75.80
+                       Other Specify |          1        0.00       75.80
+                 PATIENT TRANSFERRED |        574        0.05       75.85
+                    PATIENT WITHDREW |         12        0.00       75.85
+     REFUSAL OF TREATMENT BY PATIENT |          2        0.00       75.85
+        Referred to another facility |          1        0.00       75.85
+                   Refused Treatment |          3        0.00       75.85
+Self Referred to other Organisations |          3        0.00       75.86
+                                Stop |        202        0.02       75.87
+                             Stopped |         67        0.01       75.88
+                        Stopped ARVs |          2        0.00       75.88
+   TC-Treatment Completed (no smear) |          1        0.00       75.88
+    TC-Treatment Completed(no smear) |          4        0.00       75.88
+                        TUBERCULOSIS |          3        0.00       75.88
+                      Toxicity, drug |          4        0.00       75.88
+                            Transfer |     88,194        7.73       83.61
+                        Transfer Out |      8,654        0.76       84.37
+                        Transfer out |         13        0.00       84.37
+                     Transferred out |     47,008        4.12       88.49
+                  Treatment complete |      1,481        0.13       88.62
+                             Unknown |      2,097        0.18       88.80
+                         Untraceable |          6        0.00       88.80
+               Wrong Service entered |          1        0.00       88.80
+                                dead |     18,080        1.58       90.38
+                         discontinue |         19        0.00       90.39
+                                ltfu |    102,616        8.99       99.38
+                        transfer_out |      7,102        0.62      100.00
+-------------------------------------+-----------------------------------
+                               Total |  1,141,254      100.00
+
+. gen exit_reason = lower(exitreason)
+(160,282 missing values generated)
+
+. ta exit_reason
+
+                         exit_reason |      Freq.     Percent        Cum.
+-------------------------------------+-----------------------------------
+                abortion/miscarriage |          2        0.00        0.00
+                              active |        205        0.02        0.02
+           c - cured(smear negative) |          1        0.00        0.02
+             cannot afford treatment |         53        0.00        0.02
+                           completed |      2,621        0.23        0.25
+                              d-dead |         15        0.00        0.25
+                                dead |     18,115        1.59        1.84
+                               death |     29,906        2.62        4.46
+                           defaulter |        628        0.06        4.52
+                                died |     17,777        1.56        6.07
+                         discontinue |         19        0.00        6.08
+                        hiv negative |        191        0.02        6.09
+     hiv negative, no longer at risk |         11        0.00        6.09
+                        hiv positive |        152        0.01        6.11
+                                lost |     64,806        5.68       11.79
+                   lost to follow-up |         39        0.00       11.79
+                    lost to followup |     17,479        1.53       13.32
+                                ltfu |    103,966        9.11       22.43
+                                null |    727,616       63.76       86.19
+                               other |         21        0.00       86.19
+                     other non-coded |      2,196        0.19       86.38
+                       other specify |          1        0.00       86.38
+                 patient transferred |        574        0.05       86.43
+                    patient withdrew |         12        0.00       86.43
+        referred to another facility |          1        0.00       86.43
+     refusal of treatment by patient |          2        0.00       86.43
+                   refused treatment |          3        0.00       86.43
+self referred to other organisations |          3        0.00       86.43
+                                stop |        202        0.02       86.45
+                             stopped |         67        0.01       86.46
+                        stopped arvs |          2        0.00       86.46
+   tc-treatment completed (no smear) |          1        0.00       86.46
+    tc-treatment completed(no smear) |          4        0.00       86.46
+                      toxicity, drug |          4        0.00       86.46
+                            transfer |     88,194        7.73       94.18
+                        transfer out |      8,667        0.76       94.94
+                        transfer_out |      7,102        0.62       95.57
+                     transferred out |     47,008        4.12       99.69
+                  treatment complete |      1,481        0.13       99.82
+                        tuberculosis |          3        0.00       99.82
+                             unknown |      2,097        0.18      100.00
+                         untraceable |          6        0.00      100.00
+               wrong service entered |          1        0.00      100.00
+-------------------------------------+-----------------------------------
+                               Total |  1,141,254      100.00
+
+. encode exit_reason, gen(exit_reason_n)
+
+. ta exit_reason_n
+
+                       exit_reason_n |      Freq.     Percent        Cum.
+-------------------------------------+-----------------------------------
+                abortion/miscarriage |          2        0.00        0.00
+                              active |        205        0.02        0.02
+           c - cured(smear negative) |          1        0.00        0.02
+             cannot afford treatment |         53        0.00        0.02
+                           completed |      2,621        0.23        0.25
+                              d-dead |         15        0.00        0.25
+                                dead |     18,115        1.59        1.84
+                               death |     29,906        2.62        4.46
+                           defaulter |        628        0.06        4.52
+                                died |     17,777        1.56        6.07
+                         discontinue |         19        0.00        6.08
+                        hiv negative |        191        0.02        6.09
+     hiv negative, no longer at risk |         11        0.00        6.09
+                        hiv positive |        152        0.01        6.11
+                                lost |     64,806        5.68       11.79
+                   lost to follow-up |         39        0.00       11.79
+                    lost to followup |     17,479        1.53       13.32
+                                ltfu |    103,966        9.11       22.43
+                                null |    727,616       63.76       86.19
+                               other |         21        0.00       86.19
+                     other non-coded |      2,196        0.19       86.38
+                       other specify |          1        0.00       86.38
+                 patient transferred |        574        0.05       86.43
+                    patient withdrew |         12        0.00       86.43
+        referred to another facility |          1        0.00       86.43
+     refusal of treatment by patient |          2        0.00       86.43
+                   refused treatment |          3        0.00       86.43
+self referred to other organisations |          3        0.00       86.43
+                                stop |        202        0.02       86.45
+                             stopped |         67        0.01       86.46
+                        stopped arvs |          2        0.00       86.46
+   tc-treatment completed (no smear) |          1        0.00       86.46
+    tc-treatment completed(no smear) |          4        0.00       86.46
+                      toxicity, drug |          4        0.00       86.46
+                            transfer |     88,194        7.73       94.18
+                        transfer out |      8,667        0.76       94.94
+                        transfer_out |      7,102        0.62       95.57
+                     transferred out |     47,008        4.12       99.69
+                  treatment complete |      1,481        0.13       99.82
+                        tuberculosis |          3        0.00       99.82
+                             unknown |      2,097        0.18      100.00
+                         untraceable |          6        0.00      100.00
+               wrong service entered |          1        0.00      100.00
+-------------------------------------+-----------------------------------
+                               Total |  1,141,254      100.00
+
+. ta exit_reason_n, nola
+
+exit_reason |
+         _n |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |          2        0.00        0.00
+          2 |        205        0.02        0.02
+          3 |          1        0.00        0.02
+          4 |         53        0.00        0.02
+          5 |      2,621        0.23        0.25
+          6 |         15        0.00        0.25
+          7 |     18,115        1.59        1.84
+          8 |     29,906        2.62        4.46
+          9 |        628        0.06        4.52
+         10 |     17,777        1.56        6.07
+         11 |         19        0.00        6.08
+         12 |        191        0.02        6.09
+         13 |         11        0.00        6.09
+         14 |        152        0.01        6.11
+         15 |     64,806        5.68       11.79
+         16 |         39        0.00       11.79
+         17 |     17,479        1.53       13.32
+         18 |    103,966        9.11       22.43
+         19 |    727,616       63.76       86.19
+         20 |         21        0.00       86.19
+         21 |      2,196        0.19       86.38
+         22 |          1        0.00       86.38
+         23 |        574        0.05       86.43
+         24 |         12        0.00       86.43
+         25 |          1        0.00       86.43
+         26 |          2        0.00       86.43
+         27 |          3        0.00       86.43
+         28 |          3        0.00       86.43
+         29 |        202        0.02       86.45
+         30 |         67        0.01       86.46
+         31 |          2        0.00       86.46
+         32 |          1        0.00       86.46
+         33 |          4        0.00       86.46
+         34 |          4        0.00       86.46
+         35 |     88,194        7.73       94.18
+         36 |      8,667        0.76       94.94
+         37 |      7,102        0.62       95.57
+         38 |     47,008        4.12       99.69
+         39 |      1,481        0.13       99.82
+         40 |          3        0.00       99.82
+         41 |      2,097        0.18      100.00
+         42 |          6        0.00      100.00
+         43 |          1        0.00      100.00
+------------+-----------------------------------
+      Total |  1,141,254      100.00
+
+. 
+. drop exitreason exit_reason
+
+. 
+. /*dead*/
+. replace exit_reason_n =7 if exit_reason_n ==6
+(15 real changes made)
+
+. replace exit_reason_n =7 if exit_reason_n ==8
+(29,906 real changes made)
+
+. replace exit_reason_n =7 if exit_reason_n ==10
+(17,777 real changes made)
+
+. /*ltfu*/
+. replace exit_reason_n =18 if exit_reason_n ==15
+(64,806 real changes made)
+
+. replace exit_reason_n =18 if exit_reason_n ==16
+(39 real changes made)
+
+. replace exit_reason_n =18 if exit_reason_n ==17
+(17,479 real changes made)
+
+. /*transfer out*/
+. replace exit_reason_n =36 if exit_reason_n ==23
+(574 real changes made)
+
+. replace exit_reason_n =36 if exit_reason_n ==25
+(1 real change made)
+
+. replace exit_reason_n =36 if exit_reason_n ==28
+(3 real changes made)
+
+. replace exit_reason_n =36 if exit_reason_n ==35
+(88,194 real changes made)
+
+. replace exit_reason_n =36 if exit_reason_n ==37
+(7,102 real changes made)
+
+. replace exit_reason_n =36 if exit_reason_n ==38
+(47,008 real changes made)
+
+. /*stopped*/
+. replace exit_reason_n =30 if exit_reason_n ==29
+(202 real changes made)
+
+. replace exit_reason_n =30 if exit_reason_n ==31
+(2 real changes made)
+
+. 
+. 
+. /*cleaning TCA date for calculating Tx_CURR*/
+. count if date_last_art < artstart_date & date_last_art !=.
+  4,203
+
+. replace date_last_art = artstart_date if date_last_art < artstart_date & date_last_art !=.
+(4,203 real changes made)
+
+. 
+. 
+. count if last_visitdate < date_last_art & date_last_art !=.
+  137,718
+
+. replace last_visitdate = date_last_art if last_visitdate < date_last_art & date_last_art !=.
+(137,718 real changes made)
+
+. 
+. replace date_lvisit_tca2 = last_visitdate +30  if date_lvisit_tca2==.
+(63,368 real changes made)
+
+. 
+. count if date_lvisit_tca2< last_visitdate &  last_visitdate !=.
+  107,115
+
+. replace date_lvisit_tca2 = last_visitdate +30 if date_lvisit_tca2< last_visitdate &  last_vis
+> itdate !=.
+(107,115 real changes made)
+
+. 
+. /*in future, consider using date of last vl 
+> count if last_visitdate < lastvl_date & lastvl_date !=.
+> replace last_visitdate = lastvl_date if last_visitdate < lastvl_date & lastvl_date !=.
+> */
+. 
+. 
+. 
+. /*Tx_CURR */
+. gen active =0
+
+. replace active = 1 if (date_lvisit_tca2 >=td(1,10,2019)) & date_lvisit_tca2 !=.
+(539,118 real changes made)
+
+. count if date_lvisit_tca2==.
+  0
+
+. replace active=2  if exit_reason_n ==36 & (exit_date <=td(31,10,2019))
+(148,000 real changes made)
+
+. replace active=3  if exit_reason_n ==7 & (exit_date <=td(31,10,2019))
+(64,611 real changes made)
+
+. lab def active 0"ltfu" 1"active" 2"transfer out" 3"dead", replace
+
+. lab val active active
+
+. ta active, m
+
+      active |      Freq.     Percent        Cum.
+-------------+-----------------------------------
+        ltfu |    555,924       42.71       42.71
+      active |    533,001       40.95       83.66
+transfer out |    148,000       11.37       95.04
+        dead |     64,611        4.96      100.00
+-------------+-----------------------------------
+       Total |  1,301,536      100.00
+
+. 
+. /*slide*/
+. ta yr_artstart active, row nofreq
+
+yr_artstar |                   active
+         t |      ltfu     active  transfer        dead |     Total
+-----------+--------------------------------------------+----------
+      2004 |     45.68      34.40      10.33       9.58 |    100.00 
+      2005 |     42.53      36.12      11.20      10.16 |    100.00 
+      2006 |     44.03      34.31      12.39       9.27 |    100.00 
+      2007 |     45.00      32.47      13.79       8.73 |    100.00 
+      2008 |     43.58      34.88      14.12       7.42 |    100.00 
+      2009 |     43.77      35.92      13.54       6.77 |    100.00 
+      2010 |     43.15      37.26      13.43       6.16 |    100.00 
+      2011 |     44.25      37.10      12.96       5.70 |    100.00 
+      2012 |     43.16      39.74      11.94       5.16 |    100.00 
+      2013 |     44.67      37.64      12.39       5.30 |    100.00 
+      2014 |     44.15      40.82      11.06       3.97 |    100.00 
+      2015 |     43.76      41.04      11.37       3.83 |    100.00 
+      2016 |     44.07      42.14      10.58       3.22 |    100.00 
+      2017 |     44.48      42.24      10.08       3.20 |    100.00 
+      2018 |     42.08      46.69       8.60       2.63 |    100.00 
+      2019 |     23.26      70.68       4.61       1.44 |    100.00 
+-----------+--------------------------------------------+----------
+     Total |     42.71      40.95      11.37       4.96 |    100.00 
+
+. /*recoding age at 10 year bands*/
+. recode agelastvisit (min/14.9999=1 "<15 yrs")(15.0/24.9999=2 "15-24 yrs")(25.0/34.9999=3 "25-
+> 34 yrs")(35.0/44.9999=4 "35-44 yrs")(45.0/54.9999=5 "45-54 yrs")(55.0/64.9999=6 "55-64 yrs")(
+> 65.0/max=7 ">65 yrs"), gen(catage_ten_lvisit)
+(1291914 differences between agelastvisit and catage_ten_lvisit)
+
+. 
+. 
+. /*slide active by county*/
+. ta county1 active, row nofreq
+
+                 |                   active
+         county1 |      ltfu     active  transfer        dead |     Total
+-----------------+--------------------------------------------+----------
+         baringo |     29.29      51.45      12.77       6.49 |    100.00 
+           bomet |     32.65      56.72       5.85       4.79 |    100.00 
+         bungoma |     58.78      24.06       8.16       9.01 |    100.00 
+           busia |     62.27      21.81       5.29      10.63 |    100.00 
+elegeyo-marakwet |     55.72      24.27       7.69      12.32 |    100.00 
+            embu |     51.54      38.84       5.67       3.96 |    100.00 
+        homa bay |     40.68      35.73      18.52       5.08 |    100.00 
+          isiolo |     87.50       0.00       6.25       6.25 |    100.00 
+         kajiado |     42.02      47.13       8.74       2.11 |    100.00 
+        kakamega |     44.48      35.85      14.22       5.45 |    100.00 
+         kericho |     92.27       0.00       5.19       2.54 |    100.00 
+          kiambu |     51.88      25.43      16.65       6.04 |    100.00 
+          kilifi |     62.93      20.62      11.03       5.41 |    100.00 
+       kirinyaga |     36.97      41.63      14.46       6.94 |    100.00 
+           kisii |     17.87      68.27      10.22       3.64 |    100.00 
+          kisumu |     40.23      47.62       7.77       4.37 |    100.00 
+           kitui |     30.83      51.94      11.51       5.72 |    100.00 
+           kwale |     80.85       0.00      13.70       5.45 |    100.00 
+        laikipia |     31.43      41.51      21.86       5.19 |    100.00 
+            lamu |     82.19       0.04      12.84       4.93 |    100.00 
+        machakos |     30.84      56.19       9.56       3.41 |    100.00 
+         makueni |     35.23      52.05       9.82       2.91 |    100.00 
+        marsabit |     90.43       0.00       3.77       5.80 |    100.00 
+            meru |     38.28      47.03       9.57       5.12 |    100.00 
+          migori |     41.82      47.81       7.79       2.57 |    100.00 
+         mombasa |     65.88      21.88      10.00       2.24 |    100.00 
+        murang'a |     20.79      53.15      18.22       7.83 |    100.00 
+         nairobi |     33.38      50.74      12.59       3.29 |    100.00 
+          nakuru |     37.15      53.88       6.54       2.42 |    100.00 
+           nandi |     79.36       9.43       6.12       5.09 |    100.00 
+           narok |     84.41       0.26      11.37       3.96 |    100.00 
+         nyamira |     36.85      44.97      13.26       4.92 |    100.00 
+       nyandarua |     23.93      50.50      19.99       5.58 |    100.00 
+           nyeri |     17.09      52.92      22.78       7.21 |    100.00 
+         samburu |     35.74      54.50       2.39       7.37 |    100.00 
+           siaya |     27.44      58.27      11.93       2.36 |    100.00 
+    taita taveta |     72.15       8.38      12.53       6.94 |    100.00 
+      tana river |     80.86       0.00      10.49       8.65 |    100.00 
+   tharaka-nithi |     24.46      55.30      11.15       9.10 |    100.00 
+     trans nzoia |     79.80       6.19       6.91       7.10 |    100.00 
+         turkana |     51.72      35.84       7.85       4.60 |    100.00 
+     uasin gishu |     71.31      15.61       3.99       9.10 |    100.00 
+          vihiga |     33.90      47.75      12.58       5.77 |    100.00 
+      west pokot |     53.58      34.31       6.98       5.13 |    100.00 
+-----------------+--------------------------------------------+----------
+           Total |     42.71      40.95      11.37       4.96 |    100.00 
+
+. 
+. /*slide active by age and gender*/
+. bysort sex:ta catage_ten_lvisit active, row nofreq
+
+-----------------------------------------------------------------------------------------------
+-> sex = F
+
+ RECODE of |
+agelastvis |
+        it |
+(AgeLastVi |                   active
+      sit) |      ltfu     active  transfer        dead |     Total
+-----------+--------------------------------------------+----------
+   <15 yrs |     47.85      32.34      15.52       4.29 |    100.00 
+ 15-24 yrs |     52.54      28.85      15.91       2.70 |    100.00 
+ 25-34 yrs |     48.44      32.99      14.82       3.74 |    100.00 
+ 35-44 yrs |     40.01      44.79      10.88       4.31 |    100.00 
+ 45-54 yrs |     35.24      52.78       7.76       4.23 |    100.00 
+ 55-64 yrs |     33.12      55.93       6.27       4.68 |    100.00 
+   >65 yrs |     31.83      54.62       6.26       7.29 |    100.00 
+-----------+--------------------------------------------+----------
+     Total |     42.96      41.05      11.96       4.03 |    100.00 
+
+-----------------------------------------------------------------------------------------------
+-> sex = M
+
+ RECODE of |
+agelastvis |
+        it |
+(AgeLastVi |                   active
+      sit) |      ltfu     active  transfer        dead |     Total
+-----------+--------------------------------------------+----------
+   <15 yrs |     47.82      32.51      14.62       5.05 |    100.00 
+ 15-24 yrs |     41.57      42.78      11.21       4.44 |    100.00 
+ 25-34 yrs |     48.71      32.41      11.89       6.99 |    100.00 
+ 35-44 yrs |     43.50      38.63      10.46       7.41 |    100.00 
+ 45-54 yrs |     37.82      47.14       8.18       6.87 |    100.00 
+ 55-64 yrs |     35.41      50.58       6.89       7.12 |    100.00 
+   >65 yrs |     33.71      49.78       6.15      10.35 |    100.00 
+-----------+--------------------------------------------+----------
+     Total |     42.23      40.78      10.15       6.84 |    100.00 
+
+
+. 
+. /*fp*/
+. gen fp=1 if fponlastvisit !="NULL" & sex=="F"
+(1,125,137 missing values generated)
+
+. replace fp=0 if fponlastvisit=="Not using FP" & sex=="F"
+(55,274 real changes made)
+
+. replace fp=0 if fponlastvisit=="NULL" & sex=="F"
+(694,651 real changes made)
+
+. replace fp=0 if fponlastvisit=="UND =undecided" & sex=="F"
+(16 real changes made)
+
+. replace fp=0 if fponlastvisit=="Not using FP,Wants FP" & sex=="F"
+(1 real change made)
+
+. replace fp=0 if fponlastvisit=="Undecided" & sex=="F"
+(36 real changes made)
+
+. replace fp=0 if fponlastvisit=="Wants FP" & sex=="F"
+(76 real changes made)
+
+. replace fp=0 if fponlastvisit==",Wants FP" & sex=="F"
+(26 real changes made)
+
+. replace fp=0 if fponlastvisit==",Not using FP,Wants FP" & sex=="F"
+(2 real changes made)
+
+. replace fp=0 if fponlastvisit==",Not using FP" & sex=="F"
+(6,870 real changes made)
+
+. replace fp=0 if fponlastvisit=="Undecided; Undecided" & sex=="F"
+(0 real changes made)
+
+. replace fp=0 if fp==. & sex=="F"
+(0 real changes made)
+
+. replace fp=. if sex=="M" 
+(0 real changes made)
+
+. ta fp sex, m
+
+           |          Sex
+        fp |         F          M |     Total
+-----------+----------------------+----------
+         0 |   756,952          0 |   756,952 
+         1 |   114,098          0 |   114,098 
+         . |         0    430,486 |   430,486 
+-----------+----------------------+----------
+     Total |   871,050    430,486 | 1,301,536 
+
+. 
+. /*pregnant, abortion & miscarriage*/
+. gen pregnant_lastvisit=lower(pregnantonlastvisit)
+
+. encode pregnant_lastvisit, gen(pregnant_lvisit)
+
+. replace pregnant_lvisit=5 if pregnant_lvisit==2| pregnant_lvisit==3
+(37 real changes made)
+
+. replace pregnant_lvisit=1 if pregnant_lvisit==4
+(1,220,064 real changes made)
+
+. ta pregnant_lvisit
+
+           pregnant_lvisit |      Freq.     Percent        Cum.
+---------------------------+-----------------------------------
+                        no |  1,297,140       99.66       99.66
+                       yes |      4,396        0.34      100.00
+---------------------------+-----------------------------------
+                     Total |  1,301,536      100.00
+
+. drop pregnantonlastvisit pregnant_lastvisit
+
+. 
+. /* dtg eligible*/
+. gen dtg_elig=1 if agelastvisit <15.0
+(1,204,109 missing values generated)
+
+. replace dtg_elig=2 if pregnant_lvisit ==5 & sex=="F" & dtg_elig==.
+(4,374 real changes made)
+
+. replace dtg_elig=3 if fp==0 & sex=="F" & agelastvisit <=49.0 & dtg_elig==.
+(580,376 real changes made)
+
+. replace dtg_elig=4 if dtg_elig==.
+(619,359 real changes made)
+
+. /*slide dtg eligible*/
+. ta  dtg_elig if active==1
+
+   dtg_elig |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |     31,588        5.93        5.93
+          2 |        193        0.04        5.96
+          3 |    231,049       43.35       49.31
+          4 |    270,171       50.69      100.00
+------------+-----------------------------------
+      Total |    533,001      100.00
+
+. 
+. recode dtg_elig(1 2 3 = 0 "No")(4 = 1 "Yes"), gen( dtg_elig2)
+(1301536 differences between dtg_elig and dtg_elig2)
+
+. ta dtg_elig2 active
+
+ RECODE of |                   active
+  dtg_elig |      ltfu     active  transfer        dead |     Total
+-----------+--------------------------------------------+----------
+        No |   300,462    262,830     90,876     28,009 |   682,177 
+       Yes |   255,462    270,171     57,124     36,602 |   619,359 
+-----------+--------------------------------------------+----------
+     Total |   555,924    533,001    148,000     64,611 | 1,301,536 
+
+. /*slide dtg eligible by sex and age*/
+. ta catage_ten_lvisit sex if dtg_elig2==1 & active==1, row nofreq
+
+ RECODE of |
+agelastvis |
+        it |
+(AgeLastVi |          Sex
+      sit) |         F          M |     Total
+-----------+----------------------+----------
+ 15-24 yrs |     16.14      83.86 |    100.00 
+ 25-34 yrs |     31.66      68.34 |    100.00 
+ 35-44 yrs |     25.95      74.05 |    100.00 
+ 45-54 yrs |     44.38      55.62 |    100.00 
+ 55-64 yrs |     58.98      41.02 |    100.00 
+   >65 yrs |     55.37      44.63 |    100.00 
+-----------+----------------------+----------
+     Total |     40.71      59.29 |    100.00 
+
+. 
+. *Extracting DTG data:
+. rename lastregimen regimen_last
+
+. split regimen_last, p("+")
+variables created as string: 
+regimen_la~1  regimen_la~3  regimen_la~5  regimen_la~7
+regimen_la~2  regimen_la~4  regimen_la~6
+
+. 
+. gen regimen_last_dtg=1 if regimen_last1=="DTG"|regimen_last2=="DTG"|regimen_last3=="DTG"|regi
+> men_last4=="DTG"|regimen_last5=="DTG"|regimen_last6=="DTG"
+(1,043,489 missing values generated)
+
+. replace regimen_last_dtg=0 if regimen_last!="" & regimen_last_dtg==.
+(974,516 real changes made)
+
+. ta regimen_last_dtg, m
+
+regimen_las |
+      t_dtg |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |    974,516       74.87       74.87
+          1 |    258,047       19.83       94.70
+          . |     68,973        5.30      100.00
+------------+-----------------------------------
+      Total |  1,301,536      100.00
+
+. 
+. gen regimen_last_dtg_grp="TDF+3TC+DTG" if regimen_last=="TDF+3TC+DTG"|regimen_last=="TDF+DTG+
+> 3TC"|regimen_last=="3TC+DTG+TDF"|regimen_last=="3TC+TDF+DTG"|regimen_last=="DTG+3TC+TDF"|regi
+> men_last=="DTG+TDF+3TC+DTG"|regimen_last=="DTG+DTG+3TC+TDF"|regimen_last=="3TC+DTG+TDF+DTG"
+(1,054,189 missing values generated)
+
+. replace regimen_last_dtg_grp="TDF+FTC+DTG" if regimen_last=="TDF+FTC+DTG"|regimen_last=="TDF+
+> DTG+FTC"|regimen_last=="FTC+DTG+TDF"|regimen_last=="FTC+TDF+DTG"|regimen_last=="DTG+FTC+TDF"
+(5 real changes made)
+
+. replace regimen_last_dtg_grp="ABC+3TC+DTG" if regimen_last=="ABC+3TC+DTG"|regimen_last=="ABC+
+> DTG+3TC"|regimen_last=="3TC+DTG+ABC"|regimen_last=="3TC+ABC+DTG"|regimen_last=="DTG+3TC+ABC"
+(1,666 real changes made)
+
+. replace regimen_last_dtg_grp="AZT+3TC+DTG" if regimen_last=="AZT+3TC+DTG"|regimen_last=="AZT+
+> DTG+3TC"|regimen_last=="3TC+DTG+AZT"|regimen_last=="3TC+AZT+DTG"|regimen_last=="DTG+3TC+AZT"
+(595 real changes made)
+
+. replace regimen_last_dtg_grp="ATV/r+3TC+DTG" if regimen_last=="ATV/r+3TC+DTG"|regimen_last=="
+> ATV/r+DTG+3TC"|regimen_last=="3TC+DTG+ATV/r"|regimen_last=="3TC+ATV/r+DTG"|regimen_last=="DTG
+> +3TC+ATV/r"|regimen_last=="3TC+ATV+DTG"
+variable regimen_last_dtg_grp was str11 now str13
+(5 real changes made)
+
+. replace regimen_last_dtg_grp="D4T+3TC+DTG" if regimen_last=="D4T+3TC+DTG"
+(0 real changes made)
+
+. replace regimen_last_dtg_grp="Others" if regimen_last_dtg==1 & regimen_last_dtg_grp==""
+(8,429 real changes made)
+
+. ta regimen_last_dtg_grp regimen_last_dtg, m
+
+regimen_last_ |         regimen_last_dtg
+      dtg_grp |         0          1          . |     Total
+--------------+---------------------------------+----------
+              |   974,516          0     68,973 | 1,043,489 
+  ABC+3TC+DTG |         0      1,666          0 |     1,666 
+ATV/r+3TC+DTG |         0          5          0 |         5 
+  AZT+3TC+DTG |         0        595          0 |       595 
+       Others |         0      8,429          0 |     8,429 
+  TDF+3TC+DTG |         0    247,347          0 |   247,347 
+  TDF+FTC+DTG |         0          5          0 |         5 
+--------------+---------------------------------+----------
+        Total |   974,516    258,047     68,973 | 1,301,536 
+
+. 
+. drop regimen_last1 regimen_last2 regimen_last3 regimen_last4 regimen_last5 regimen_last6 regi
+> men_last7
+
+. 
+. /*slide dtg eligible and receiving */
+. ta regimen_last_dtg if dtg_elig2==1 & active==1
+
+regimen_las |
+      t_dtg |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |    103,099       38.17       38.17
+          1 |    167,036       61.83      100.00
+------------+-----------------------------------
+      Total |    270,135      100.00
+
+. 
+. /*slide dtg eligible and receiving  by age*/
+. bysort sex: ta catage_ten_lvisit regimen_last_dtg  if dtg_elig2==1 & active ==1, nofreq row
+
+-----------------------------------------------------------------------------------------------
+-> sex = F
+
+ RECODE of |
+agelastvis |
+        it |
+(AgeLastVi |   regimen_last_dtg
+      sit) |         0          1 |     Total
+-----------+----------------------+----------
+ 15-24 yrs |     91.21       8.79 |    100.00 
+ 25-34 yrs |     88.56      11.44 |    100.00 
+ 35-44 yrs |     84.65      15.35 |    100.00 
+ 45-54 yrs |     41.04      58.96 |    100.00 
+ 55-64 yrs |     29.61      70.39 |    100.00 
+   >65 yrs |     27.14      72.86 |    100.00 
+-----------+----------------------+----------
+     Total |     48.67      51.33 |    100.00 
+
+-----------------------------------------------------------------------------------------------
+-> sex = M
+
+ RECODE of |
+agelastvis |
+        it |
+(AgeLastVi |   regimen_last_dtg
+      sit) |         0          1 |     Total
+-----------+----------------------+----------
+ 15-24 yrs |     49.54      50.46 |    100.00 
+ 25-34 yrs |     30.14      69.86 |    100.00 
+ 35-44 yrs |     29.68      70.32 |    100.00 
+ 45-54 yrs |     29.40      70.60 |    100.00 
+ 55-64 yrs |     28.75      71.25 |    100.00 
+   >65 yrs |     27.51      72.49 |    100.00 
+-----------+----------------------+----------
+     Total |     30.92      69.08 |    100.00 
+
+
+. bysort sex: ta catage_ten_lvisit regimen_last_dtg  if dtg_elig2==1 & active ==1
+
+-----------------------------------------------------------------------------------------------
+-> sex = F
+
+ RECODE of |
+agelastvis |
+        it |
+(AgeLastVi |   regimen_last_dtg
+      sit) |         0          1 |     Total
+-----------+----------------------+----------
+ 15-24 yrs |     2,118        204 |     2,322 
+ 25-34 yrs |     9,825      1,269 |    11,094 
+ 35-44 yrs |    13,978      2,535 |    16,513 
+ 45-54 yrs |    14,846     21,329 |    36,175 
+ 55-64 yrs |    10,026     23,831 |    33,857 
+   >65 yrs |     2,698      7,243 |     9,941 
+-----------+----------------------+----------
+     Total |    53,491     56,411 |   109,902 
+
+-----------------------------------------------------------------------------------------------
+-> sex = M
+
+ RECODE of |
+agelastvis |
+        it |
+(AgeLastVi |   regimen_last_dtg
+      sit) |         0          1 |     Total
+-----------+----------------------+----------
+ 15-24 yrs |     5,979      6,091 |    12,070 
+ 25-34 yrs |     7,220     16,731 |    23,951 
+ 35-44 yrs |    13,992     33,149 |    47,141 
+ 45-54 yrs |    13,327     32,005 |    45,332 
+ 55-64 yrs |     6,768     16,775 |    23,543 
+   >65 yrs |     2,204      5,808 |     8,012 
+-----------+----------------------+----------
+     Total |    49,490    110,559 |   160,049 
+
+
+. 
+. /*slide dtg eligible and receiving  by year*/
+. bysort sex: ta yr_artstart regimen_last_dtg  if dtg_elig2==1 & active ==1, nofreq row
+
+-----------------------------------------------------------------------------------------------
+-> sex = F
+
+yr_artstar |   regimen_last_dtg
+         t |         0          1 |     Total
+-----------+----------------------+----------
+      2004 |     62.11      37.89 |    100.00 
+      2005 |     54.79      45.21 |    100.00 
+      2006 |     49.53      50.47 |    100.00 
+      2007 |     46.24      53.76 |    100.00 
+      2008 |     42.35      57.65 |    100.00 
+      2009 |     44.11      55.89 |    100.00 
+      2010 |     44.42      55.58 |    100.00 
+      2011 |     44.79      55.21 |    100.00 
+      2012 |     43.90      56.10 |    100.00 
+      2013 |     45.87      54.13 |    100.00 
+      2014 |     50.13      49.87 |    100.00 
+      2015 |     52.65      47.35 |    100.00 
+      2016 |     51.63      48.37 |    100.00 
+      2017 |     57.06      42.94 |    100.00 
+      2018 |     54.19      45.81 |    100.00 
+      2019 |     47.85      52.15 |    100.00 
+-----------+----------------------+----------
+     Total |     48.70      51.30 |    100.00 
+
+-----------------------------------------------------------------------------------------------
+-> sex = M
+
+yr_artstar |   regimen_last_dtg
+         t |         0          1 |     Total
+-----------+----------------------+----------
+      2004 |     51.73      48.27 |    100.00 
+      2005 |     48.11      51.89 |    100.00 
+      2006 |     42.70      57.30 |    100.00 
+      2007 |     39.39      60.61 |    100.00 
+      2008 |     37.62      62.38 |    100.00 
+      2009 |     39.11      60.89 |    100.00 
+      2010 |     35.29      64.71 |    100.00 
+      2011 |     33.56      66.44 |    100.00 
+      2012 |     31.79      68.21 |    100.00 
+      2013 |     33.45      66.55 |    100.00 
+      2014 |     30.63      69.37 |    100.00 
+      2015 |     29.81      70.19 |    100.00 
+      2016 |     28.13      71.87 |    100.00 
+      2017 |     29.33      70.67 |    100.00 
+      2018 |     25.82      74.18 |    100.00 
+      2019 |     15.10      84.90 |    100.00 
+-----------+----------------------+----------
+     Total |     30.93      69.07 |    100.00 
+
+
+. 
+. /*slide dtg eligible and receiving  by county*/
+. ta county1 regimen_last_dtg  if dtg_elig2==1 & active ==1, nofreq row
+
+                 |   regimen_last_dtg
+         county1 |         0          1 |     Total
+-----------------+----------------------+----------
+         baringo |     26.67      73.33 |    100.00 
+           bomet |     16.51      83.49 |    100.00 
+         bungoma |     62.19      37.81 |    100.00 
+           busia |     87.89      12.11 |    100.00 
+elegeyo-marakwet |     85.82      14.18 |    100.00 
+            embu |     30.99      69.01 |    100.00 
+        homa bay |     31.84      68.16 |    100.00 
+         kajiado |     28.10      71.90 |    100.00 
+        kakamega |     50.80      49.20 |    100.00 
+          kiambu |     33.43      66.57 |    100.00 
+          kilifi |     21.06      78.94 |    100.00 
+       kirinyaga |     12.62      87.38 |    100.00 
+           kisii |     27.27      72.73 |    100.00 
+          kisumu |     36.46      63.54 |    100.00 
+           kitui |     22.37      77.63 |    100.00 
+        laikipia |     28.22      71.78 |    100.00 
+        machakos |     22.43      77.57 |    100.00 
+         makueni |     22.65      77.35 |    100.00 
+            meru |     24.65      75.35 |    100.00 
+          migori |     30.90      69.10 |    100.00 
+         mombasa |     39.43      60.57 |    100.00 
+        murang'a |     20.44      79.56 |    100.00 
+         nairobi |     49.76      50.24 |    100.00 
+          nakuru |     24.75      75.25 |    100.00 
+           nandi |    100.00       0.00 |    100.00 
+           narok |     27.27      72.73 |    100.00 
+         nyamira |     38.89      61.11 |    100.00 
+       nyandarua |     28.48      71.52 |    100.00 
+           nyeri |     21.08      78.92 |    100.00 
+         samburu |     34.97      65.03 |    100.00 
+           siaya |     26.40      73.60 |    100.00 
+    taita taveta |     12.46      87.54 |    100.00 
+   tharaka-nithi |     22.96      77.04 |    100.00 
+     trans nzoia |     57.27      42.73 |    100.00 
+         turkana |     54.85      45.15 |    100.00 
+     uasin gishu |     99.97       0.03 |    100.00 
+          vihiga |     28.58      71.42 |    100.00 
+      west pokot |     63.25      36.75 |    100.00 
+-----------------+----------------------+----------
+           Total |     38.17      61.83 |    100.00 
+
+. 
+. 
+. *Firstline DTG data:
+. 
+. split startregimen, p("+")
+variables created as string: 
+startregim~1  startregim~3  startregim~5  startregim~7  startregim~9
+startregim~2  startregim~4  startregim~6  startregim~8
+
+. 
+. gen startregimen_dtg=1 if startregimen1=="DTG"|startregimen2=="DTG"|startregimen3=="DTG"|star
+> tregimen4=="DTG"|startregimen5=="DTG"|startregimen6=="DTG"
+(1,267,787 missing values generated)
+
+. replace startregimen_dtg=0 if startregimen!="" & startregimen_dtg==.
+(1,267,785 real changes made)
+
+. ta startregimen_dtg, m
+
+startregime |
+      n_dtg |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |  1,267,785       97.41       97.41
+          1 |     33,749        2.59      100.00
+          . |          2        0.00      100.00
+------------+-----------------------------------
+      Total |  1,301,536      100.00
+
+. 
+. gen startregimen_dtg_grp="TDF+3TC+DTG" if startregimen=="TDF+3TC+DTG"|startregimen=="TDF+DTG+
+> 3TC"|startregimen=="3TC+DTG+TDF"|startregimen=="3TC+TDF+DTG"|startregimen=="DTG+3TC+TDF"|star
+> tregimen=="DTG+TDF+3TC+DTG"|startregimen=="DTG+DTG+3TC+TDF"|startregimen=="3TC+DTG+TDF+DTG"
+(1,268,716 missing values generated)
+
+. replace startregimen_dtg_grp="TDF+FTC+DTG" if startregimen=="TDF+FTC+DTG"|startregimen=="TDF+
+> DTG+FTC"|startregimen=="FTC+DTG+TDF"|startregimen=="FTC+TDF+DTG"|startregimen=="DTG+FTC+TDF"
+(4 real changes made)
+
+. replace startregimen_dtg_grp="ABC+3TC+DTG" if startregimen=="ABC+3TC+DTG"|startregimen=="ABC+
+> DTG+3TC"|startregimen=="3TC+DTG+ABC"|startregimen=="3TC+ABC+DTG"|startregimen=="DTG+3TC+ABC"
+(159 real changes made)
+
+. replace startregimen_dtg_grp="AZT+3TC+DTG" if startregimen=="AZT+3TC+DTG"|startregimen=="AZT+
+> DTG+3TC"|startregimen=="3TC+DTG+AZT"|startregimen=="3TC+AZT+DTG"|startregimen=="DTG+3TC+AZT"
+(89 real changes made)
+
+. replace startregimen_dtg_grp="ATV/r+3TC+DTG" if startregimen=="ATV/r+3TC+DTG"|startregimen=="
+> ATV/r+DTG+3TC"|startregimen=="3TC+DTG+ATV/r"|startregimen=="3TC+ATV/r+DTG"|startregimen=="DTG
+> +3TC+ATV/r"|startregimen=="3TC+ATV+DTG"
+(0 real changes made)
+
+. replace startregimen_dtg_grp="D4T+3TC+DTG" if startregimen=="D4T+3TC+DTG"
+(0 real changes made)
+
+. replace startregimen_dtg_grp="Others" if startregimen_dtg==1 & startregimen_dtg_grp==""
+(677 real changes made)
+
+. ta startregimen_dtg_grp startregimen_dtg, m
+
+startregime |         startregimen_dtg
+  n_dtg_grp |         0          1          . |     Total
+------------+---------------------------------+----------
+            | 1,267,785          0          2 | 1,267,787 
+ABC+3TC+DTG |         0        159          0 |       159 
+AZT+3TC+DTG |         0         89          0 |        89 
+     Others |         0        677          0 |       677 
+TDF+3TC+DTG |         0     32,820          0 |    32,820 
+TDF+FTC+DTG |         0          4          0 |         4 
+------------+---------------------------------+----------
+      Total | 1,267,785     33,749          2 | 1,301,536 
+
+. 
+. drop startregimen1 startregimen2 startregimen3 startregimen4 startregimen5 startregimen6 star
+> tregimen7 startregimen8 startregimen9
+
+. 
+. /* slide: Recent trend in DTG uptake as first line option in active & eligible patients (N= 3
+> 1,848)*/
+. 
+. ta startregimen_dtg sex  if dtg_elig2==1 & active ==1 & (artstart_date >=td(1,7,2018)) & (art
+> start_date <=td(30,9,2018)), col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+startregim |          Sex
+    en_dtg |         F          M |     Total
+-----------+----------------------+----------
+         0 |     1,468      3,088 |     4,556 
+           |     94.95      88.56 |     90.52 
+-----------+----------------------+----------
+         1 |        78        399 |       477 
+           |      5.05      11.44 |      9.48 
+-----------+----------------------+----------
+     Total |     1,546      3,487 |     5,033 
+           |    100.00     100.00 |    100.00 
+
+. ta startregimen_dtg sex  if dtg_elig2==1 & active ==1 & (artstart_date >=td(1,10,2018)) & (ar
+> tstart_date <=td(31,12,2018)), col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+startregim |          Sex
+    en_dtg |         F          M |     Total
+-----------+----------------------+----------
+         0 |     1,042      1,512 |     2,554 
+           |     76.79      50.32 |     58.55 
+-----------+----------------------+----------
+         1 |       315      1,493 |     1,808 
+           |     23.21      49.68 |     41.45 
+-----------+----------------------+----------
+     Total |     1,357      3,005 |     4,362 
+           |    100.00     100.00 |    100.00 
+
+. ta startregimen_dtg sex  if dtg_elig2==1 & active ==1 & (artstart_date >=td(1,1,2019)) & (art
+> start_date <=td(31,3,2019)), col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+startregim |          Sex
+    en_dtg |         F          M |     Total
+-----------+----------------------+----------
+         0 |     1,063        977 |     2,040 
+           |     64.11      25.06 |     36.71 
+-----------+----------------------+----------
+         1 |       595      2,922 |     3,517 
+           |     35.89      74.94 |     63.29 
+-----------+----------------------+----------
+     Total |     1,658      3,899 |     5,557 
+           |    100.00     100.00 |    100.00 
+
+. ta startregimen_dtg sex  if dtg_elig2==1 & active ==1 & (artstart_date >=td(1,4,2019)) & (art
+> start_date <=td(30,6,2019)), col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+startregim |          Sex
+    en_dtg |         F          M |     Total
+-----------+----------------------+----------
+         0 |       997        880 |     1,877 
+           |     56.39      19.73 |     30.13 
+-----------+----------------------+----------
+         1 |       771      3,581 |     4,352 
+           |     43.61      80.27 |     69.87 
+-----------+----------------------+----------
+     Total |     1,768      4,461 |     6,229 
+           |    100.00     100.00 |    100.00 
+
+. ta startregimen_dtg sex  if dtg_elig2==1 & active ==1 & (artstart_date >=td(1,7,2019)) & (art
+> start_date <=td(30,9,2019)), col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+startregim |          Sex
+    en_dtg |         F          M |     Total
+-----------+----------------------+----------
+         0 |     1,040        914 |     1,954 
+           |     55.29      17.85 |     27.91 
+-----------+----------------------+----------
+         1 |       841      4,207 |     5,048 
+           |     44.71      82.15 |     72.09 
+-----------+----------------------+----------
+     Total |     1,881      5,121 |     7,002 
+           |    100.00     100.00 |    100.00 
+
+. ta startregimen_dtg sex  if dtg_elig2==1 & active ==1 & (artstart_date >=td(1,10,2019)) & (ar
+> tstart_date <=td(31,12,2019)), col
+
++-------------------+
+| Key               |
+|-------------------|
+|     frequency     |
+| column percentage |
++-------------------+
+
+startregim |          Sex
+    en_dtg |         F          M |     Total
+-----------+----------------------+----------
+         0 |       286        417 |       703 
+           |     33.93      14.87 |     19.27 
+-----------+----------------------+----------
+         1 |       557      2,388 |     2,945 
+           |     66.07      85.13 |     80.73 
+-----------+----------------------+----------
+     Total |       843      2,805 |     3,648 
+           |    100.00     100.00 |    100.00 
+
+. 
+. /*(N= 31,848) for Q3 2018 to Q4 2019*/
+. ta dtg_elig2 active if (artstart_date >=td(1,7,2018)) & (artstart_date <=td(31,12,2019))
+
+ RECODE of |                   active
+  dtg_elig |      ltfu     active  transfer        dead |     Total
+-----------+--------------------------------------------+----------
+        No |    18,352     38,833      4,111        778 |    62,074 
+       Yes |    14,694     31,831      2,472      1,244 |    50,241 
+-----------+--------------------------------------------+----------
+     Total |    33,046     70,664      6,583      2,022 |   112,315 
+
+. 
+. 
+. 
+. *********************************************************************************************
+> ***********************************************************
+. /*DSD slides*/
+. 
+. **Viral load
+. **suppressed =1, HVL =0
+. 
+. 
+. 
+. 
+. /*eligibility for active patients only*/
+. 
+. /*dsd duration on ART*/
+. gen dur_on_art = (date_last_art - artstart_date)/30.4375
+(3 missing values generated)
+
+. count if dur_on_art<0
+  0
+
+. count if dur_on_art>192 & dur_on_art!=.
+  10
+
+. replace dur_on_art=. if dur_on_art>192
+(10 real changes made, 10 to missing)
+
+.  
+. gen dsd_artdur=0
+
+. replace dsd_artdur=1 if dur_on_art>=12 & dur_on_art!=. & active ==1
+(434,346 real changes made)
+
+. replace dsd_artdur=. if active!=1
+(768,535 real changes made, 768,535 to missing)
+
+. ta dsd_artdur
+
+ dsd_artdur |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     98,655       18.51       18.51
+          1 |    434,346       81.49      100.00
+------------+-----------------------------------
+      Total |    533,001      100.00
+
+. 
+. 
+. /*dsd age */
+. gen dsd_age=0
+
+. replace dsd_age =1 if age>=20.0 & agelastvisit!=.
+(1,161,719 real changes made)
+
+. replace dsd_age =. if active!=1
+(768,535 real changes made, 768,535 to missing)
+
+. ta dsd_age
+
+    dsd_age |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     48,217        9.05        9.05
+          1 |    484,784       90.95      100.00
+------------+-----------------------------------
+      Total |    533,001      100.00
+
+. 
+. /*dsd bmi*/
+. destring bmi, replace force
+bmi: contains nonnumeric characters; replaced as double
+(38454 missing values generated)
+
+. count if bmi<10
+  1,000,259
+
+. count if bmi>50 & !missing( bmi)
+  752
+
+. replace bmi =. if bmi >50
+(752 real changes made, 752 to missing)
+
+. replace bmi =. if bmi <10
+(1,000,259 real changes made, 1,000,259 to missing)
+
+. univar bmi
+                                        -------------- Quantiles --------------
+Variable       n     Mean     S.D.      Min      .25      Mdn      .75      Max
+-------------------------------------------------------------------------------
+     bmi  262071    22.16     4.71    10.00    19.11    21.56    24.56    50.00
+-------------------------------------------------------------------------------
+
+. count if bmi<=18.5
+  52,118
+
+. gen dsd_bmi=0
+
+. replace dsd_bmi=1 if bmi<=18.5
+(52,118 real changes made)
+
+. lab def dsd_bmi 0 "missing or good bmi" 1 "bmi <18.5", replace
+
+. lab val dsd_bmi dsd_bmi
+
+. ta dsd_bmi
+
+            dsd_bmi |      Freq.     Percent        Cum.
+--------------------+-----------------------------------
+missing or good bmi |  1,249,418       96.00       96.00
+          bmi <18.5 |     52,118        4.00      100.00
+--------------------+-----------------------------------
+              Total |  1,301,536      100.00
+
+. replace dsd_bmi =. if active!=1
+(768,535 real changes made, 768,535 to missing)
+
+. 
+. /*dsd adherence*/
+. gen dsd_adhere=0
+
+. replace dsd_adhere=1 if artadherence=="GOOD" | artadherence=="NULL"
+(1,294,336 real changes made)
+
+. lab def dsd_adhere 0 "poor" 1 "good or missing", replace
+
+. lab val dsd_adhere dsd_adhere
+
+. ta dsd_adhere
+
+     dsd_adhere |      Freq.     Percent        Cum.
+----------------+-----------------------------------
+           poor |      7,200        0.55        0.55
+good or missing |  1,294,336       99.45      100.00
+----------------+-----------------------------------
+          Total |  1,301,536      100.00
+
+. 
+. ta ctxadherence artadherence
+
+CTXAdheren |                ARTAdherence
+        ce |      FAIR       GOOD       NULL       POOR |     Total
+-----------+--------------------------------------------+----------
+      FAIR |        22          0      1,551          0 |     1,573 
+      GOOD |         0      2,515     86,171          0 |    88,686 
+      NULL |     4,402    288,798    914,470      2,763 | 1,210,433 
+      POOR |         0          0        831         13 |       844 
+-----------+--------------------------------------------+----------
+     Total |     4,424    291,313  1,003,023      2,776 | 1,301,536 
+
+. 
+. replace dsd_adhere=1 if ctxadherence =="POOR"
+(13 real changes made)
+
+. replace dsd_adhere=. if active!=1
+(768,535 real changes made, 768,535 to missing)
+
+. 
+. 
+. 
+. /*dsd oi*/
+. gen oi_date = date(oidate , "YMD")
+(1,285,470 missing values generated)
+
+. format oi_date %td
+
+. 
+. gen dsd_oi=0
+
+. replace dsd_oi =1 if oi !="NULL" & (oi_date >=td(1,1,2019))
+(196,871 real changes made)
+
+. replace dsd_oi =. if active!=1
+(768,535 real changes made, 768,535 to missing)
+
+. lab def dsd_oi 0 "no oi or missing" 1 "has oi", replace
+
+. lab val dsd_oi dsd_oi
+
+. ta dsd_oi
+
+          dsd_oi |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+no oi or missing |    431,469       80.95       80.95
+          has oi |    101,532       19.05      100.00
+-----------------+-----------------------------------
+           Total |    533,001      100.00
+
+. 
+. 
+. /*MMS in active patients*/
+. gen mms_dur= (date_lvisit_tca2 - last_visitdate)/30.4375
+(1 missing value generated)
+
+. count if mms_dur<0
+  0
+
+. count if mms_dur>8 & mms_dur!=.
+  123,785
+
+. replace mms_dur=. if mms_dur>8
+(123,785 real changes made, 123,785 to missing)
+
+. 
+. egen mms_cat = cut(mms_dur), at(0,1,3, 4, 15)
+(123786 missing values generated)
+
+. lab def mms_cat 0"<1 month" 1"1-2 months" 3"3-4 months" 4">4 months", replace
+
+. lab val mms_cat mms_cat
+
+. 
+. replace mms_cat =. if active!=1
+(696,003 real changes made, 696,003 to missing)
+
+. ta mms_cat
+
+    mms_cat |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   <1 month |    139,857       29.03       29.03
+ 1-2 months |    179,358       37.23       66.26
+ 3-4 months |     42,743        8.87       75.13
+  >4 months |    119,789       24.87      100.00
+------------+-----------------------------------
+      Total |    481,747      100.00
+
+. 
+. /*vl data cleaning */
+. replace lvlresult  = lower(lvlresult)
+(658,579 real changes made)
+
+. split lvlresult, parse(.) gen(lvlresult2)
+variables created as string: 
+lvlresult21  lvlresult22
+
+. drop lvlresult22
+
+. egen lvlresult3 = sieve(lvlresult21), keep(numeric)
+(658590 missing values generated)
+
+. destring lvlresult3, replace
+lvlresult3: all characters numeric; replaced as double
+(658590 missing values generated)
+
+. 
+. gen vs = 0
+
+. replace vs = 1 if lvlresult3 <400
+(541,960 real changes made)
+
+. sort lvlresult21
+
+. 
+. count if (strpos(lvlresult21 , "<") !=0 | strpos(lvlresult21 , "detect") !=0 | strpos(lvlresu
+> lt21 , "ldl") !=0 | strpos(lvlresult21 , "less")!=0)
+  154,079
+
+. replace vs =1  if (strpos(lvlresult21 , "<") !=0 | strpos(lvlresult21 , "detect") !=0 | strpo
+> s(lvlresult21 , "ldl") !=0 | strpos(lvlresult21 , "less")!=0)
+(150,454 real changes made)
+
+. replace vs = 2 if lvlresult3 >=400 & lvlresult3<1000
+(26,191 real changes made)
+
+. 
+. replace vs=. if lvlresult21 =="null"
+(505,302 real changes made, 505,302 to missing)
+
+. replace vs =. if (strpos(lvlresult21, "yes") !=0)
+(265 real changes made, 265 to missing)
+
+. replace vs =. if (strpos(lvlresult21, "y") !=0)
+(3 real changes made, 3 to missing)
+
+. lab def vs 0"hvl" 1"suppressed" 2"llv", replace
+
+. lab val vs vs
+
+. ta vs, m
+
+         vs |      Freq.     Percent        Cum.
+------------+-----------------------------------
+        hvl |     77,361        5.94        5.94
+ suppressed |    692,414       53.20       59.14
+        llv |     26,191        2.01       61.16
+          . |    505,570       38.84      100.00
+------------+-----------------------------------
+      Total |  1,301,536      100.00
+
+. 
+. gen dsd_vl=0
+
+. replace dsd_vl=1 if vs==1
+(692,414 real changes made)
+
+. replace dsd_vl =. if active!=1
+(768,535 real changes made, 768,535 to missing)
+
+. lab def dsd_vl 0 "not suppressed" 1 "suppressed", replace
+
+. lab val dsd_vl dsd_vl
+
+. ta dsd_vl
+
+        dsd_vl |      Freq.     Percent        Cum.
+---------------+-----------------------------------
+not suppressed |    102,223       19.18       19.18
+    suppressed |    430,778       80.82      100.00
+---------------+-----------------------------------
+         Total |    533,001      100.00
+
+. 
+.  
+. 
+. 
+. /*Generating stable categorization*/
+. gen stable =0
+
+. replace stable=1 if dsd_oi==0 & dsd_bmi==0 & dsd_artdur==1 & dsd_age==1 & dsd_adhere==1 & dsd
+> _vl==1
+(291,631 real changes made)
+
+. replace stable=. if active !=1
+(768,535 real changes made, 768,535 to missing)
+
+. ta stable
+
+     stable |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |    241,370       45.29       45.29
+          1 |    291,631       54.71      100.00
+------------+-----------------------------------
+      Total |    533,001      100.00
+
+. 
+. /*slide - criteria for unstable patients */
+. ta dsd_artdur if stable==0
+
+ dsd_artdur |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     98,655       40.87       40.87
+          1 |    142,715       59.13      100.00
+------------+-----------------------------------
+      Total |    241,370      100.00
+
+. ta dsd_age if stable==0
+
+    dsd_age |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |     48,217       19.98       19.98
+          1 |    193,153       80.02      100.00
+------------+-----------------------------------
+      Total |    241,370      100.00
+
+. ta dsd_bmi if stable==0
+
+            dsd_bmi |      Freq.     Percent        Cum.
+--------------------+-----------------------------------
+missing or good bmi |    224,858       93.16       93.16
+          bmi <18.5 |     16,512        6.84      100.00
+--------------------+-----------------------------------
+              Total |    241,370      100.00
+
+. ta dsd_adhere if stable==0
+
+     dsd_adhere |      Freq.     Percent        Cum.
+----------------+-----------------------------------
+           poor |        866        0.36        0.36
+good or missing |    240,504       99.64      100.00
+----------------+-----------------------------------
+          Total |    241,370      100.00
+
+. ta dsd_oi if stable==0
+
+          dsd_oi |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+no oi or missing |    139,838       57.94       57.94
+          has oi |    101,532       42.06      100.00
+-----------------+-----------------------------------
+           Total |    241,370      100.00
+
+. ta dsd_vl if stable==0
+
+        dsd_vl |      Freq.     Percent        Cum.
+---------------+-----------------------------------
+not suppressed |    102,223       42.35       42.35
+    suppressed |    139,147       57.65      100.00
+---------------+-----------------------------------
+         Total |    241,370      100.00
+
+. 
+. /*slide- Stable status by age and gender */
+. bysort sex: ta catage_ten_lvisit stable if active ==1, row nofreq
+
+-----------------------------------------------------------------------------------------------
+-> sex = F
+
+ RECODE of |
+agelastvis |
+        it |
+(AgeLastVi |        stable
+      sit) |         0          1 |     Total
+-----------+----------------------+----------
+   <15 yrs |    100.00       0.00 |    100.00 
+ 15-24 yrs |     78.48      21.52 |    100.00 
+ 25-34 yrs |     51.86      48.14 |    100.00 
+ 35-44 yrs |     35.33      64.67 |    100.00 
+ 45-54 yrs |     29.29      70.71 |    100.00 
+ 55-64 yrs |     28.01      71.99 |    100.00 
+   >65 yrs |     29.12      70.88 |    100.00 
+-----------+----------------------+----------
+     Total |     43.54      56.46 |    100.00 
+
+-----------------------------------------------------------------------------------------------
+-> sex = M
+
+ RECODE of |
+agelastvis |
+        it |
+(AgeLastVi |        stable
+      sit) |         0          1 |     Total
+-----------+----------------------+----------
+   <15 yrs |    100.00       0.00 |    100.00 
+ 15-24 yrs |     80.83      19.17 |    100.00 
+ 25-34 yrs |     60.54      39.46 |    100.00 
+ 35-44 yrs |     44.43      55.57 |    100.00 
+ 45-54 yrs |     33.76      66.24 |    100.00 
+ 55-64 yrs |     31.00      69.00 |    100.00 
+   >65 yrs |     30.08      69.92 |    100.00 
+-----------+----------------------+----------
+     Total |     48.78      51.22 |    100.00 
+
+
+. /*slide- Stable status by county (N= 532,974)*/
+. ta  county1 stable, row nofreq
+
+                 |        stable
+         county1 |         0          1 |     Total
+-----------------+----------------------+----------
+         baringo |     60.95      39.05 |    100.00 
+           bomet |     17.00      83.00 |    100.00 
+         bungoma |     56.13      43.87 |    100.00 
+           busia |     24.83      75.17 |    100.00 
+elegeyo-marakwet |     41.82      58.18 |    100.00 
+            embu |     33.90      66.10 |    100.00 
+        homa bay |     77.31      22.69 |    100.00 
+         kajiado |     42.08      57.92 |    100.00 
+        kakamega |     58.64      41.36 |    100.00 
+          kiambu |     27.22      72.78 |    100.00 
+          kilifi |     38.18      61.82 |    100.00 
+       kirinyaga |     19.98      80.02 |    100.00 
+           kisii |     32.91      67.09 |    100.00 
+          kisumu |     71.23      28.77 |    100.00 
+           kitui |     35.55      64.45 |    100.00 
+        laikipia |     30.81      69.19 |    100.00 
+            lamu |    100.00       0.00 |    100.00 
+        machakos |     46.78      53.22 |    100.00 
+         makueni |     29.92      70.08 |    100.00 
+            meru |     31.99      68.01 |    100.00 
+          migori |     54.95      45.05 |    100.00 
+         mombasa |     25.45      74.55 |    100.00 
+        murang'a |     62.81      37.19 |    100.00 
+         nairobi |     29.07      70.93 |    100.00 
+          nakuru |     27.33      72.67 |    100.00 
+           nandi |     22.64      77.36 |    100.00 
+           narok |     28.57      71.43 |    100.00 
+         nyamira |     99.61       0.39 |    100.00 
+       nyandarua |     43.29      56.71 |    100.00 
+           nyeri |     31.53      68.47 |    100.00 
+         samburu |     69.46      30.54 |    100.00 
+           siaya |     48.61      51.39 |    100.00 
+    taita taveta |     24.61      75.39 |    100.00 
+   tharaka-nithi |     26.41      73.59 |    100.00 
+     trans nzoia |     56.27      43.73 |    100.00 
+         turkana |     82.05      17.95 |    100.00 
+     uasin gishu |     31.33      68.67 |    100.00 
+          vihiga |     56.12      43.88 |    100.00 
+      west pokot |     84.87      15.13 |    100.00 
+-----------------+----------------------+----------
+           Total |     45.29      54.71 |    100.00 
+
+. 
+. /*slide- MMS by Stable status */
+. ta  mms_cat stable, col nofreq
+
+           |        stable
+   mms_cat |         0          1 |     Total
+-----------+----------------------+----------
+  <1 month |     35.59      24.69 |     29.03 
+1-2 months |     39.28      35.87 |     37.23 
+3-4 months |      6.68      10.33 |      8.87 
+ >4 months |     18.45      29.12 |     24.87 
+-----------+----------------------+----------
+     Total |    100.00     100.00 |    100.00 
+
+. /*slide- MMS by sex, the age in stable patients */
+. ta  mms_cat sex if stable==1, col nofreq
+
+           |          Sex
+   mms_cat |         F          M |     Total
+-----------+----------------------+----------
+  <1 month |     25.16      23.62 |     24.69 
+1-2 months |     37.33      32.58 |     35.87 
+3-4 months |     10.07      10.89 |     10.33 
+ >4 months |     27.43      32.91 |     29.12 
+-----------+----------------------+----------
+     Total |    100.00     100.00 |    100.00 
+
+. ta  mms_cat catage_ten_lvisit if stable==1, col nofreq
+
+           |               RECODE of agelastvisit (AgeLastVisit)
+   mms_cat | 15-24 yrs  25-34 yrs  35-44 yrs  45-54 yrs  55-64 yrs    >65 yrs |     Total
+-----------+------------------------------------------------------------------+----------
+  <1 month |     31.61      26.93      24.40      23.80      23.37      23.34 |     24.69 
+1-2 months |     46.03      40.29      35.97      33.72      32.75      34.78 |     35.87 
+3-4 months |      9.73       9.68      10.40      10.75      10.29      10.03 |     10.33 
+ >4 months |     12.63      23.10      29.23      31.73      33.59      31.85 |     29.12 
+-----------+------------------------------------------------------------------+----------
+     Total |    100.00     100.00     100.00     100.00     100.00     100.00 |    100.00 
+
+. 
+. /*slide- MMS by keph in stable patients */
+. ta   mms_cat keph_level if stable==1, col nofreq
+
+           |                       Keph_level
+   mms_cat |   Level 2    Level 3    Level 4    Level 5    Level 6 |     Total
+-----------+-------------------------------------------------------+----------
+  <1 month |     22.51      23.23      26.17      19.39      67.21 |     24.69 
+1-2 months |     36.17      36.47      35.62      37.80      15.46 |     35.87 
+3-4 months |     10.96       9.85       9.77      13.51       5.03 |     10.33 
+ >4 months |     30.36      30.45      28.44      29.30      12.30 |     29.12 
+-----------+-------------------------------------------------------+----------
+     Total |    100.00     100.00     100.00     100.00     100.00 |    100.00 
+
+. ta   mms_cat keph_level if stable==1
+
+           |                       Keph_level
+   mms_cat |   Level 2    Level 3    Level 4    Level 5    Level 6 |     Total
+-----------+-------------------------------------------------------+----------
+  <1 month |    10,915     16,510     35,315      6,031      2,738 |    71,509 
+1-2 months |    17,534     25,916     48,070     11,759        630 |   103,909 
+3-4 months |     5,316      6,999     13,191      4,201        205 |    29,912 
+ >4 months |    14,718     21,643     38,378      9,114        501 |    84,354 
+-----------+-------------------------------------------------------+----------
+     Total |    48,483     71,068    134,954     31,105      4,074 |   289,684 
+
+. 
+. 
+. /*slide - Stable status by KEPH level and EMR in active clients*/
+. ta  keph_level stable, row nofreq
+
+           |        stable
+Keph_level |         0          1 |     Total
+-----------+----------------------+----------
+   Level 2 |     48.12      51.88 |    100.00 
+   Level 3 |     46.76      53.24 |    100.00 
+   Level 4 |     46.47      53.53 |    100.00 
+   Level 5 |     32.06      67.94 |    100.00 
+   Level 6 |     13.40      86.60 |    100.00 
+-----------+----------------------+----------
+     Total |     45.29      54.71 |    100.00 
+
+. ta  emr stable, row nofreq
+
+                      |        stable
+                  Emr |         0          1 |     Total
+----------------------+----------------------+----------
+                 AMRS |     26.75      73.25 |    100.00 
+                ECare |     37.33      62.67 |    100.00 
+               IQCare |     28.58      71.42 |    100.00 
+             KenyaEMR |     88.53      11.47 |    100.00 
+              OpenMRS |     50.00      50.00 |    100.00 
+----------------------+----------------------+----------
+                Total |     45.29      54.71 |    100.00 
+
+. 
+. /*slide- MMS by county in stable patients */
+. ta   county1 mms_cat if stable==1, row nofreq
+
+                 |                   mms_cat
+         county1 |  <1 month  1-2 month  3-4 month  >4 months |     Total
+-----------------+--------------------------------------------+----------
+         baringo |     44.18      18.23      10.06      27.53 |    100.00 
+           bomet |     12.50      38.83       8.24      40.43 |    100.00 
+         bungoma |     39.43      27.83       6.46      26.29 |    100.00 
+           busia |     40.25      31.78       3.76      24.21 |    100.00 
+elegeyo-marakwet |     28.85      23.99       4.86      42.30 |    100.00 
+            embu |     35.46      48.38       5.77      10.38 |    100.00 
+        homa bay |     17.53      48.10      11.35      23.02 |    100.00 
+         kajiado |     23.65      39.52      15.69      21.14 |    100.00 
+        kakamega |     39.49      21.96       3.67      34.87 |    100.00 
+          kiambu |     42.51      42.30       7.54       7.65 |    100.00 
+          kilifi |     12.70      51.60      11.38      24.32 |    100.00 
+       kirinyaga |     49.31      41.70       0.71       8.28 |    100.00 
+           kisii |     21.90      34.21      15.93      27.96 |    100.00 
+          kisumu |     27.66      32.94       5.06      34.35 |    100.00 
+           kitui |     21.92      48.91      14.43      14.73 |    100.00 
+        laikipia |     11.20      37.43       9.01      42.37 |    100.00 
+        machakos |     21.14      44.39       9.17      25.30 |    100.00 
+         makueni |     13.32      43.17       8.16      35.35 |    100.00 
+            meru |     18.06      47.80       7.31      26.84 |    100.00 
+          migori |      9.76      37.40       7.70      45.14 |    100.00 
+         mombasa |     12.97      63.11      10.78      13.14 |    100.00 
+        murang'a |     16.18      34.95      12.18      36.69 |    100.00 
+         nairobi |     29.64      27.89      16.67      25.79 |    100.00 
+          nakuru |     18.35      48.43       9.95      23.27 |    100.00 
+           nandi |     40.25      37.01       9.03      13.71 |    100.00 
+           narok |     33.33      53.33      13.33       0.00 |    100.00 
+         nyamira |    100.00       0.00       0.00       0.00 |    100.00 
+       nyandarua |     16.85      41.69      13.77      27.69 |    100.00 
+           nyeri |     14.03      42.15       9.77      34.05 |    100.00 
+         samburu |     44.67      42.21       2.05      11.07 |    100.00 
+           siaya |     19.17      25.96       3.52      51.35 |    100.00 
+    taita taveta |     10.77      83.23       6.00       0.00 |    100.00 
+   tharaka-nithi |     16.79      66.45       8.48       8.28 |    100.00 
+     trans nzoia |     17.36      22.96       6.31      53.37 |    100.00 
+         turkana |     19.92      53.93       5.96      20.19 |    100.00 
+     uasin gishu |     53.08      21.27      10.72      14.93 |    100.00 
+          vihiga |     11.16      29.08      18.16      41.61 |    100.00 
+      west pokot |     25.77      35.58       6.13      32.52 |    100.00 
+-----------------+--------------------------------------------+----------
+           Total |     24.69      35.87      10.33      29.12 |    100.00 
+
+. 
+. 
+. *********************************************************************************************
+> ******************
+. 
+. 
+. 
+. 
+. /* Viral load monitoring and optimization */
+. 
+. 
+. 
+. 
+. 
+. 
+. *********************************************************************************************
+> *********
+. 
+. /*vl dates cleaning*/
+. replace fvlresult  = lower(fvlresult)
+(646,271 real changes made)
+
+. replace fvlresultafterartstart  = lower( fvlresultafterartstart )
+(657,499 real changes made)
+
+. 
+. gen lastvl_date = date(lastvldate, "YMD")
+(504,617 missing values generated)
+
+. format lastvl_date %td
+
+.  
+. gen firstvl_date = date(firstvldate, "YMD")
+(504,617 missing values generated)
+
+. format firstvl_date %td
+
+. 
+. 
+. gen fvl_dateafterartstart = date(fvldateafterartstart, "YMD")
+(516,524 missing values generated)
+
+. format fvl_dateafterartstart %td
+
+. 
+. drop firstvldate lastartdate oidate fvldateafterartstart lastvldate
+
+. 
+. 
+. /*vl duration*/
+. gen vl_dur= (last_visitdate - lastvl_date)/30.4375
+(504,617 missing values generated)
+
+. univar vl_dur
+                                        -------------- Quantiles --------------
+Variable       n     Mean     S.D.      Min      .25      Mdn      .75      Max
+-------------------------------------------------------------------------------
+  vl_dur  796919     9.46   796.61 -2357.59     0.92     3.91     7.92 95923.95
+-------------------------------------------------------------------------------
+
+. replace vl_dur=. if vl_dur<0
+(85,657 real changes made, 85,657 to missing)
+
+. 
+. 
+. gen vl_done = 0
+
+. replace vl_done =1 if fvlresult == "null" & lvlresult=="null" & fvlresultafterartstart == "nu
+> ll"
+(504,812 real changes made)
+
+. lab def vl_done 0"done" 1"not done", replace
+
+. lab val vl_done vl_done
+
+. ta vl_done
+
+    vl_done |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       done |    796,724       61.21       61.21
+   not done |    504,812       38.79      100.00
+------------+-----------------------------------
+      Total |  1,301,536      100.00
+
+. 
+. gen vl_recent = 0
+
+. count if vl_done ==0 & vl_dur<12.25
+  617,301
+
+. replace vl_recent=1 if vl_done ==0 & vl_dur<12.25
+(617,301 real changes made)
+
+. lab def vl_recent 0"no" 1"yes", replace
+
+. lab val vl_recent vl_recent
+
+. ta vl_recent
+
+  vl_recent |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         no |    684,235       52.57       52.57
+        yes |    617,301       47.43      100.00
+------------+-----------------------------------
+      Total |  1,301,536      100.00
+
+. 
+. 
+. gen active2=0
+
+. replace active2 = 1 if active==1
+(533,001 real changes made)
+
+. lab def active2 0"not active" 1"active", replace
+
+. lab val active2 active2
+
+. 
+. /*slide- Patients ever had a VL test */
+. 
+. ta vl_done active2
+
+           |        active2
+   vl_done | not activ     active |     Total
+-----------+----------------------+----------
+      done |   319,649    477,075 |   796,724 
+  not done |   448,886     55,926 |   504,812 
+-----------+----------------------+----------
+     Total |   768,535    533,001 | 1,301,536 
+
+. ta vl_done active2, col nofreq
+
+           |        active2
+   vl_done | not activ     active |     Total
+-----------+----------------------+----------
+      done |     41.59      89.51 |     61.21 
+  not done |     58.41      10.49 |     38.79 
+-----------+----------------------+----------
+     Total |    100.00     100.00 |    100.00 
+
+. 
+. 
+. /*slide VL test done within the last 12 months */
+. ta active2 vl_recent , row nofreq
+
+           |       vl_recent
+   active2 |        no        yes |     Total
+-----------+----------------------+----------
+not active |     69.11      30.89 |    100.00 
+    active |     28.73      71.27 |    100.00 
+-----------+----------------------+----------
+     Total |     52.57      47.43 |    100.00 
+
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. 
+. log close
+      name:  <unnamed>
+       log:  C:\Users\user\Documents\Palladium\Hackathon\MPR variables\2020\mpr2020Jan.log
+  log type:  text
+ closed on:  20 Jan 2020, 12:06:05
+-----------------------------------------------------------------------------------------------
